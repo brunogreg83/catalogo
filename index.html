@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AB Chemicals V3</title>
+<style>
+:root{--p:#00337A;--s:#0072CE;--bg:#eef2f7}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial;background:var(--bg)}
+aside{position:fixed;left:0;top:0;width:260px;height:100%;background:var(--p);color:#fff;padding:20px}
+aside a{display:block;color:#fff;text-decoration:none;padding:10px;border-radius:8px;background:rgba(255,255,255,.08);margin:6px 0}
+main{margin-left:260px;padding:24px}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+input,textarea,select{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:8px}
+button{padding:10px 14px;border:none;border-radius:8px;background:var(--s);color:#fff;cursor:pointer}
+.catalogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px}
+.prod{background:#fff;padding:15px;border-radius:12px}
+.prod img{width:100%;height:180px;object-fit:contain}
+.badge{background:#e8f2ff;padding:4px 8px;border-radius:20px}
+</style>
+</head>
+<body>
+<aside>
+<h2>AB Chemicals</h2>
+<a href="#">Dashboard</a>
+<a href="#">Produtos</a>
+<a href="#">Catálogo</a>
+<a href="#">Exportar JSON</a>
+<a href="#">Supabase</a>
+</aside>
+
+<main>
+<div class="card">
+<h1>AB Chemicals - Sistema de Catálogo V3</h1>
+<p>CRUD local, imagens Base64, catálogo público e configuração pronta para Supabase.</p>
+</div>
+
+<div class="grid">
+<div class="card"><h3>Total Produtos</h3><h2 id="total">0</h2></div>
+<div class="card"><h3>Categorias</h3><h2>Dinâmico</h2></div>
+<div class="card"><h3>Status</h3><h2>Online</h2></div>
+</div>
+
+<div class="card">
+<h2>Cadastrar Produto</h2>
+<input id="codigo" placeholder="Código">
+<input id="nome" placeholder="Nome">
+<input id="diluicao" placeholder="Diluição">
+<select id="categoria">
+<option>Desengraxantes</option>
+<option>Desinfetantes</option>
+<option>Lavanderia</option>
+<option>Cozinha Industrial</option>
+</select>
+<textarea id="descricao" placeholder="Descrição"></textarea>
+<input type="file" id="img">
+<button onclick="salvar()">Salvar</button>
+<button onclick="exportar()">Exportar JSON</button>
+</div>
+
+<div class="card">
+<h2>Catálogo Público</h2>
+<div id="catalogo" class="catalogo"></div>
+</div>
+
+<div class="card">
+<h2>Integração Supabase</h2>
+<input placeholder="SUPABASE_URL">
+<input placeholder="SUPABASE_ANON_KEY">
+<p>Pronto para conectar SDK do Supabase.</p>
+</div>
+</main>
+
+<script>
+let produtos=JSON.parse(localStorage.getItem('abchem_v3')||'[]');
+
+function render(){
+document.getElementById('total').innerText=produtos.length;
+document.getElementById('catalogo').innerHTML=produtos.map((p,i)=>`
+<div class="prod">
+${p.img?`<img src="${p.img}">`:''}
+<h3>${p.nome}</h3>
+<div class="badge">${p.categoria}</div>
+<p><b>Código:</b> ${p.codigo}</p>
+<p><b>Diluição:</b> ${p.diluicao}</p>
+<p>${p.descricao}</p>
+<button onclick="remover(${i})">Excluir</button>
+</div>`).join('');
+localStorage.setItem('abchem_v3',JSON.stringify(produtos));
+}
+
+function salvar(){
+const f=document.getElementById('img').files[0];
+const add=(img)=>{
+produtos.push({
+codigo:codigo.value,nome:nome.value,diluicao:diluicao.value,
+categoria:categoria.value,descricao:descricao.value,img:img||''
+});
+render();
+}
+if(f){
+const r=new FileReader();
+r.onload=()=>add(r.result);
+r.readAsDataURL(f);
+}else add('');
+}
+
+function remover(i){
+produtos.splice(i,1);
+render();
+}
+
+function exportar(){
+const blob=new Blob([JSON.stringify(produtos,null,2)],{type:'application/json'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='abchemicals-produtos.json';
+a.click();
+}
+
+render();
+</script>
+</body>
+</html>
