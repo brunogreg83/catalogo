@@ -402,6 +402,9 @@
       .modal-body { padding: 20px 20px 28px; }
     }
 
+    /* ── PDF SECTIONS (oculto na tela) ── */
+    .pdf-sections, #pdfDocument { display: none; }
+
     /* ── PDF BUTTON ── */
     .btn-pdf {
       position: fixed; bottom: 28px; left: 28px; z-index: 150;
@@ -420,62 +423,204 @@
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
+      /* ── Ocultar elementos da UI ── */
       header, .hero, .filters-wrap, .card-actions,
       .admin-toggle, .admin-panel, .modal-backdrop,
-      .btn-pdf, footer { display: none !important; }
+      .btn-pdf, footer, .section-title { display: none !important; }
 
-      body { background: #fff !important; }
+      body { background: #fff !important; margin: 0; padding: 0; }
 
-      .catalog-section {
-        max-width: 100% !important;
-        margin: 0 !important; padding: 0 !important;
-      }
-
-      /* Capa do PDF */
+      /* ── CAPA ── */
       .pdf-cover {
         display: flex !important;
         flex-direction: column;
         align-items: center; justify-content: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #0a2e52 0%, #0a4a82 60%, #005fa3 100%) !important;
+        width: 100vw; min-height: 100vh;
+        position: relative; overflow: hidden;
         page-break-after: always;
-        text-align: center; padding: 60px 40px;
+        background: #0a2e52 !important;
+        text-align: center; padding: 0;
+        box-sizing: border-box;
       }
-      .pdf-cover img { width: 220px; margin-bottom: 32px; }
+      .pdf-cover-bg {
+        position: absolute; inset: 0;
+        background: linear-gradient(160deg, #0a2e52 0%, #1252a3 55%, #0a2e52 100%) !important;
+      }
+      .pdf-cover-stripe {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        height: 8px;
+        background: linear-gradient(to right, #1a73e8, #00aaff, #1a73e8) !important;
+      }
+      .pdf-cover-stripe2 {
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 8px;
+        background: linear-gradient(to right, #1a73e8, #00aaff, #1a73e8) !important;
+      }
+      /* Círculos decorativos */
+      .pdf-cover-circle1 {
+        position: absolute; width: 420px; height: 420px;
+        border-radius: 50%; border: 1px solid rgba(255,255,255,.08);
+        top: -100px; right: -100px;
+      }
+      .pdf-cover-circle2 {
+        position: absolute; width: 300px; height: 300px;
+        border-radius: 50%; border: 1px solid rgba(255,255,255,.06);
+        bottom: 80px; left: -80px;
+      }
+      .pdf-cover-circle3 {
+        position: absolute; width: 180px; height: 180px;
+        border-radius: 50%; background: rgba(26,115,232,.15) !important;
+        bottom: 140px; left: -30px;
+      }
+      .pdf-cover-inner {
+        position: relative; z-index: 2;
+        display: flex; flex-direction: column;
+        align-items: center; padding: 60px 40px;
+        width: 100%;
+      }
+      .pdf-cover img {
+        width: 260px; margin-bottom: 40px;
+        filter: drop-shadow(0 8px 32px rgba(0,0,0,.4));
+      }
+      .pdf-cover-divider {
+        width: 80px; height: 3px;
+        background: linear-gradient(to right, #1a73e8, #00aaff) !important;
+        border-radius: 2px; margin: 0 auto 28px;
+      }
       .pdf-cover h1 {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 52px; letter-spacing: 4px; color: #fff;
-        margin-bottom: 12px;
+        font-size: 58px; letter-spacing: 6px; color: #fff !important;
+        margin: 0 0 8px; line-height: 1;
+        text-shadow: 0 2px 20px rgba(0,0,0,.3);
       }
-      .pdf-cover p { color: rgba(255,255,255,.75); font-size: 18px; }
-      .pdf-cover .pdf-year {
-        margin-top: 24px; background: rgba(0,200,160,.2);
-        border: 1px solid #00c8a0; color: #00c8a0;
-        padding: 8px 24px; border-radius: 50px;
-        font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      .pdf-cover h2 {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 15px; letter-spacing: 4px; text-transform: uppercase;
+        color: rgba(255,255,255,.6) !important; font-weight: 400;
+        margin: 0 0 36px;
+      }
+      .pdf-cover-badge {
+        background: rgba(26,115,232,.25) !important;
+        border: 1.5px solid rgba(26,115,232,.6);
+        color: #7dc8ff !important;
+        padding: 10px 30px; border-radius: 50px;
+        font-size: 13px; font-weight: 700; letter-spacing: 3px;
+        text-transform: uppercase; margin-bottom: 48px;
+      }
+      .pdf-cover-contact {
+        font-size: 13px; color: rgba(255,255,255,.45) !important;
+        letter-spacing: 1px;
+      }
+      .pdf-cover-contact strong { color: rgba(255,255,255,.75) !important; }
+
+      /* ── SEÇÕES POR CATEGORIA ── */
+      .pdf-cat-section { page-break-before: always; padding: 0; }
+      .pdf-cat-section:first-of-type { page-break-before: avoid; }
+
+      .pdf-cat-header {
+        display: flex !important;
+        align-items: center;
+        background: linear-gradient(135deg, #0a2e52 0%, #1252a3 100%) !important;
+        padding: 22px 32px; margin-bottom: 24px;
+        border-radius: 0 0 16px 16px;
+        position: relative; overflow: hidden;
+      }
+      .pdf-cat-header::after {
+        content: '';
+        position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(to right, #1a73e8, #00aaff) !important;
+      }
+      .pdf-cat-icon {
+        font-size: 36px; margin-right: 18px; flex-shrink: 0;
+      }
+      .pdf-cat-info { flex: 1; }
+      .pdf-cat-info h2 {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 32px; letter-spacing: 3px;
+        color: #fff !important; margin: 0 0 2px;
+      }
+      .pdf-cat-info p {
+        font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+        color: rgba(255,255,255,.55) !important; margin: 0;
+      }
+      .pdf-cat-count {
+        background: rgba(255,255,255,.15) !important;
+        color: #fff !important;
+        font-size: 13px; font-weight: 700;
+        padding: 6px 16px; border-radius: 50px;
+        letter-spacing: 1px;
       }
 
-      /* Título de seção */
-      .section-title { font-size: 22px !important; margin: 20px 0 14px !important; }
-
-      /* Grid vira 2 colunas no PDF */
-      .grid {
+      /* ── GRID DE CARDS NO PDF ── */
+      .pdf-grid {
         display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 16px !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 14px !important;
+        padding: 0 24px 32px !important;
       }
 
-      .card {
-        break-inside: avoid;
-        page-break-inside: avoid;
+      .pdf-card {
+        display: flex !important; flex-direction: column;
         border: 1.5px solid #dce4ef !important;
+        border-radius: 12px; overflow: hidden;
+        break-inside: avoid; page-break-inside: avoid;
+        background: #fff !important;
         box-shadow: none !important;
-        transform: none !important;
+      }
+      .pdf-card-header {
+        background: linear-gradient(135deg, #e8f2fc 0%, #d0e5f7 100%) !important;
+        padding: 14px; text-align: center;
+        border-bottom: 1px solid #dce4ef !important;
+      }
+      .pdf-card-emoji { font-size: 32px; }
+      .pdf-card-body { padding: 14px 16px; flex: 1; }
+      .pdf-card-code {
+        font-size: 10px; color: #6b7a8d !important;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        margin-bottom: 4px; font-weight: 600;
+      }
+      .pdf-card-name {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 18px; letter-spacing: 1px;
+        color: #0a2e52 !important; margin-bottom: 6px; line-height: 1.2;
+      }
+      .pdf-card-desc {
+        font-size: 11px; color: #4a5568 !important;
+        line-height: 1.55; margin-bottom: 10px;
+      }
+      .pdf-card-specs { border-top: 1px solid #eef2f7 !important; padding-top: 10px; }
+      .pdf-spec-row {
+        display: flex; justify-content: space-between;
+        font-size: 10px; padding: 3px 0;
+        border-bottom: 1px solid #f0f4f8 !important;
+      }
+      .pdf-spec-row span:first-child { color: #6b7a8d !important; }
+      .pdf-spec-row span:last-child { font-weight: 700; color: #0a2e52 !important; text-align: right; max-width: 55%; }
+      .pdf-card-tags {
+        display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+      }
+      .pdf-card-tag {
+        font-size: 9px; font-weight: 700; letter-spacing: .5px;
+        padding: 2px 7px; border-radius: 50px;
+        background: #e6f4fb !important; color: #0072a8 !important;
+        border: 1px solid #bee3f8 !important;
       }
 
-      .card-img-wrap { height: 140px !important; }
-      .card-body { padding: 14px 16px 18px !important; }
-      .card-actions { display: none !important; }
+      /* ── RODAPÉ DE PÁGINA ── */
+      .pdf-page-footer {
+        display: flex !important;
+        justify-content: space-between; align-items: center;
+        padding: 16px 24px;
+        border-top: 2px solid #0a2e52 !important;
+        margin-top: 8px;
+      }
+      .pdf-page-footer-logo { font-size: 10px; color: #6b7a8d !important; }
+      .pdf-page-footer-logo strong { color: #0a2e52 !important; }
+      .pdf-page-footer-contact { font-size: 10px; color: #6b7a8d !important; text-align: right; }
+
+      /* Ocultar seção normal e mostrar PDF */
+      .catalog-section { display: none !important; }
+      .pdf-sections { display: block !important; }
     }
 
   </style>
@@ -483,12 +628,32 @@
 <body>
 
 
-<!-- CAPA PDF (visível apenas no print) -->
-<div class="pdf-cover" style="display:none" id="pdfCover">
-  <img id="pdfCoverLogo" src="" alt="AB Chemicals" />
-  <h1>Catálogo de Produtos</h1>
-  <p>Linha Profissional de Limpeza</p>
-  <div class="pdf-year">Catálogo 2026</div>
+<!-- CAPA + SEÇÕES PDF (visível apenas no print) -->
+<div id="pdfDocument" style="display:none">
+
+  <!-- CAPA -->
+  <div class="pdf-cover" id="pdfCover">
+    <div class="pdf-cover-bg"></div>
+    <div class="pdf-cover-stripe"></div>
+    <div class="pdf-cover-stripe2"></div>
+    <div class="pdf-cover-circle1"></div>
+    <div class="pdf-cover-circle2"></div>
+    <div class="pdf-cover-circle3"></div>
+    <div class="pdf-cover-inner">
+      <img id="pdfCoverLogo" src="" alt="AB Chemicals" />
+      <div class="pdf-cover-divider"></div>
+      <h1>Catálogo de Produtos</h1>
+      <h2>Linha Profissional de Limpeza</h2>
+      <div class="pdf-cover-badge">Catálogo 2026</div>
+      <div class="pdf-cover-contact">
+        <strong>AB Chemicals</strong> &nbsp;·&nbsp; (43) 98871-2001 &nbsp;·&nbsp; Soluções em limpeza profissional
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÕES POR CATEGORIA (geradas dinamicamente pelo JS) -->
+  <div id="pdfSections"></div>
+
 </div>
 
 <!-- HEADER -->
@@ -641,34 +806,95 @@
 <script>
 
   // ── GERAR PDF ────────────────────────────────────────────────────────────────
+  const CAT_INFO = {
+    'Desengordurante': { emoji: '🧪', desc: 'Remoção de gorduras, óleos e sujidades pesadas' },
+    'Detergente':      { emoji: '🫧', desc: 'Limpeza geral de superfícies e utensílios'      },
+    'Sanitizante':     { emoji: '🛡️', desc: 'Eliminação de microrganismos e patógenos'        },
+  };
+
+  function buildPdfSections() {
+    const cats = ['Desengordurante', 'Detergente', 'Sanitizante'];
+    let html = '';
+
+    cats.forEach(cat => {
+      const prods = products.filter(p => p.cat === cat);
+      if (!prods.length) return;
+      const info = CAT_INFO[cat] || { emoji: '🧴', desc: '' };
+
+      const cards = prods.map(p => {
+        const specs = [];
+        if (p.conc) specs.push(['Diluição', p.conc]);
+        if (p.pack) specs.push(['Embalagem', p.pack]);
+        if (p.app)  specs.push(['Aplicação', p.app]);
+
+        const tagsHtml = p.tags
+          ? p.tags.split(',').map(t => `<span class="pdf-card-tag">${t.trim()}</span>`).join('')
+          : '';
+
+        return `
+          <div class="pdf-card">
+            <div class="pdf-card-header">
+              <div class="pdf-card-emoji">${info.emoji}</div>
+            </div>
+            <div class="pdf-card-body">
+              <div class="pdf-card-code">${p.code}</div>
+              <div class="pdf-card-name">${p.name}</div>
+              <div class="pdf-card-desc">${p.desc}</div>
+              ${specs.length ? `
+                <div class="pdf-card-specs">
+                  ${specs.map(([k,v]) => `
+                    <div class="pdf-spec-row">
+                      <span>${k}</span><span>${v}</span>
+                    </div>`).join('')}
+                </div>` : ''}
+              ${tagsHtml ? `<div class="pdf-card-tags">${tagsHtml}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+      html += `
+        <div class="pdf-cat-section">
+          <div class="pdf-cat-header">
+            <div class="pdf-cat-icon">${info.emoji}</div>
+            <div class="pdf-cat-info">
+              <h2>${cat}s</h2>
+              <p>${info.desc}</p>
+            </div>
+            <div class="pdf-cat-count">${prods.length} produto${prods.length !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="pdf-grid">${cards}</div>
+          <div class="pdf-page-footer">
+            <div class="pdf-page-footer-logo">
+              <strong>AB Chemicals</strong> — Soluções em limpeza profissional
+            </div>
+            <div class="pdf-page-footer-contact">
+              (43) 98871-2001 &nbsp;|&nbsp; Catálogo 2026
+            </div>
+          </div>
+        </div>`;
+    });
+
+    return html;
+  }
+
   function gerarPDF() {
-    // Busca a logo já inserida no header e copia para a capa
+    // Logo na capa
     const logoEl = document.querySelector('.logo-img');
-    const coverLogo = document.getElementById('pdfCoverLogo');
-    if (logoEl) coverLogo.src = logoEl.src;
+    if (logoEl) document.getElementById('pdfCoverLogo').src = logoEl.src;
 
-    // Mostra a capa
-    const cover = document.getElementById('pdfCover');
-    cover.style.display = 'flex';
+    // Monta seções por categoria
+    document.getElementById('pdfSections').innerHTML = buildPdfSections();
 
-    // Remove filtros para imprimir TODOS os produtos
-    const prevFilter = currentFilter;
-    const prevSearch = document.getElementById('searchInput').value;
-    currentFilter = 'all';
-    document.getElementById('searchInput').value = '';
-    render();
+    // Mostra o documento PDF
+    document.getElementById('pdfDocument').style.display = 'block';
 
     // Dispara impressão
     setTimeout(() => {
       window.print();
-      // Restaura estado
       setTimeout(() => {
-        cover.style.display = 'none';
-        currentFilter = prevFilter;
-        document.getElementById('searchInput').value = prevSearch;
-        render();
-      }, 500);
-    }, 300);
+        document.getElementById('pdfDocument').style.display = 'none';
+      }, 800);
+    }, 350);
   }
 
   // ── CONFIG ──────────────────────────────────────────────────────────────────
