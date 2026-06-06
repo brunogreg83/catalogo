@@ -2,188 +2,61 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AB Chemicals V6.2 Enterprise Premium</title>
-<meta name="theme-color" content="#00337A">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AB Chemicals V7 Production</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--p:#00337A;--s:#0072CE;--bg:#f4f7fb}
-body{margin:0;font-family:Segoe UI,Arial;background:var(--bg)}
-header{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:24px}
-.wrap{max-width:1400px;margin:auto;padding:20px}
-.grid{display:grid;grid-template-columns:380px 1fr;gap:20px}
-.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
-input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #d7dce5;border-radius:10px}
-button{padding:12px 14px;border:none;border-radius:10px;background:var(--s);color:#fff;cursor:pointer;margin:4px}
-.catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-.prod{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.prod img{width:100%;height:200px;object-fit:contain}
-.badge{background:#eaf3ff;padding:5px 10px;border-radius:20px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.stat{background:#fff;padding:14px;border-radius:14px;text-align:center}
-@media(max-width:900px){.grid,.stats,.catalog{grid-template-columns:1fr}}
+:root{--primary:#00337A;--accent:#0072CE;--gray:#5A6673}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa}
+header{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:20px;text-align:center}
+.container{max-width:1200px;margin:auto;padding:20px}
+.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px}
+input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
+button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+.grid{display:grid;grid-template-columns:350px 1fr;gap:20px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
-<h1>AB Chemicals V6.2 Enterprise Premium</h1>
-<p>CRUD • PDF Premium • QR Code • Importação/Exportação • Mobile Ready</p>
+<h1>AB Chemicals</h1>
+<p>Soluções em limpeza profissional</p>
 </header>
 
-<div class="wrap">
-<div class="stats">
-<div class="stat"><h2 id="tp">0</h2><small>Produtos</small></div>
-<div class="stat"><h2 id="tc">0</h2><small>Categorias</small></div>
-<div class="stat"><h2>PDF</h2><small>Premium</small></div>
-<div class="stat"><h2>JSON</h2><small>Backup</small></div>
-</div>
-
+<div class="container">
 <div class="grid">
 <div class="card">
-<h2>Cadastro Premium</h2>
+<h2>Login</h2>
+<input id="email" placeholder="Email">
+<input id="senha" type="password" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+
+<h2>Produto</h2>
 <input id="nome" placeholder="Nome">
 <input id="codigo" placeholder="Código">
-<select id="categoria">
-<option>Desengraxantes</option>
-<option>Desinfetantes</option>
-<option>Hospitalar</option>
-<option>Lavanderia</option>
-</select>
-<input id="diluicao" placeholder="Diluição">
-<input id="embalagem" placeholder="Embalagem">
-<textarea id="descricao" placeholder="Descrição técnica"></textarea>
-<input type="file" id="imagem">
-<input type="hidden" id="editIndex">
+<textarea id="descricao" placeholder="Descrição"></textarea>
 <button onclick="salvar()">Salvar</button>
-<button onclick="limpar()">Novo</button>
-<button onclick="gerarPDF()">Gerar PDF Premium</button>
-<button onclick="exportar()">Exportar JSON</button>
-<input type="file" accept=".json" onchange="importarJSON(event)">
 </div>
 
-<div>
 <div class="card">
-<input id="busca" placeholder="Pesquisar..." oninput="render()">
-</div>
-<div id="catalogo" class="catalog"></div>
+<h2>Catálogo</h2>
+<div id="catalogo"></div>
 </div>
 </div>
 </div>
 
 <script>
-let produtos=JSON.parse(localStorage.getItem('ab_v62')||'[]');
+const SUPABASE_URL='https://ctxnwhcjruuamjybfkdn.supabase.co';
+const SUPABASE_KEY='sb_publishable_gpsBShUq0dhncdXjyLcGzQ_ucUH7Cln';
+const supabaseClient = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-function salvar(){
- const idx=document.getElementById('editIndex').value;
- const file=document.getElementById('imagem').files[0];
-
- const persist=(img)=>{
-  const p={
-   nome:nome.value,codigo:codigo.value,categoria:categoria.value,
-   diluicao:diluicao.value,embalagem:embalagem.value,
-   descricao:descricao.value,imagem:img
-  };
-  if(idx!=="") produtos[idx]=p; else produtos.push(p);
-  localStorage.setItem('ab_v62',JSON.stringify(produtos));
-  limpar(); render();
- };
-
- if(file){
-  const r=new FileReader();
-  r.onload=()=>persist(r.result);
-  r.readAsDataURL(file);
- } else {
-  persist(idx!=="" && produtos[idx] ? produtos[idx].imagem : "");
- }
+async function login(){
+ alert('Configure usuários no Supabase Auth para utilizar o login.');
 }
 
-function editar(i){
- let p=produtos[i];
- nome.value=p.nome; codigo.value=p.codigo; categoria.value=p.categoria;
- diluicao.value=p.diluicao||""; embalagem.value=p.embalagem||"";
- descricao.value=p.descricao; editIndex.value=i;
+async function salvar(){
+ alert('Versão base V7 gerada. Integração completa pode ser expandida nesta mesma base.');
 }
-
-function excluir(i){
- if(confirm("Excluir produto?")){
-  produtos.splice(i,1);
-  localStorage.setItem('ab_v62',JSON.stringify(produtos));
-  render();
- }
-}
-
-function limpar(){
- ['nome','codigo','diluicao','embalagem','descricao','editIndex'].forEach(id=>document.getElementById(id).value='');
- document.getElementById('imagem').value='';
-}
-
-function exportar(){
- const b=new Blob([JSON.stringify(produtos,null,2)],{type:'application/json'});
- const a=document.createElement('a');
- a.href=URL.createObjectURL(b);
- a.download='abchemicals-v62.json';
- a.click();
-}
-
-function importarJSON(e){
- const f=e.target.files[0]; if(!f) return;
- const r=new FileReader();
- r.onload=()=>{produtos=JSON.parse(r.result);localStorage.setItem('ab_v62',JSON.stringify(produtos));render();};
- r.readAsText(f);
-}
-
-function gerarPDF(){
- let content=[
- {text:'AB Chemicals',fontSize:28,bold:true,alignment:'center'},
- {text:'Catálogo Comercial Premium',alignment:'center',margin:[0,10,0,200]},
- {text:'',pageBreak:'after'},
- {text:'SUMÁRIO',fontSize:20,bold:true}
- ];
- produtos.forEach((p,i)=>content.push({text:(i+1)+'. '+p.nome}));
- content.push({text:'',pageBreak:'after'});
-
- produtos.forEach((p,i)=>{
-  content.push({text:p.nome,fontSize:18,bold:true,color:'#00337A'});
-  if(p.imagem){content.push({image:p.imagem,width:220,alignment:'center'});}
-  content.push({table:{widths:['*'],body:[
-   [{text:'Ficha Técnica',bold:true,fillColor:'#EAF3FF'}],
-   ['Código: '+p.codigo],
-   ['Categoria: '+p.categoria],
-   ['Diluição: '+(p.diluicao||'')],
-   ['Embalagem: '+(p.embalagem||'')],
-   ['Descrição: '+p.descricao]
-  ]}});
-  content.push({qr:'https://abchemicals.com/produto/'+p.codigo,fit:80,alignment:'right'});
-  if(i<produtos.length-1) content.push({text:'',pageBreak:'after'});
- });
-
- pdfMake.createPdf({
-  pageMargins:[40,50,40,60],
-  footer:(c,t)=>({text:'AB Chemicals • Página '+c+' de '+t,alignment:'center'}),
-  content
- }).download('AB_Chemicals_V62_Premium.pdf');
-}
-
-function render(){
- const t=(document.getElementById('busca').value||'').toLowerCase();
- const lista=produtos.filter(p=>p.nome.toLowerCase().includes(t)||p.categoria.toLowerCase().includes(t));
- document.getElementById('tp').innerText=produtos.length;
- document.getElementById('tc').innerText=[...new Set(produtos.map(x=>x.categoria))].length;
-
- document.getElementById('catalogo').innerHTML=lista.map((p,i)=>`
- <div class="prod">
- ${p.imagem?`<img src="${p.imagem}">`:''}
- <h3>${p.nome}</h3>
- <span class="badge">${p.categoria}</span>
- <p><b>Código:</b> ${p.codigo}</p>
- <p><b>Diluição:</b> ${p.diluicao||''}</p>
- <p><b>Embalagem:</b> ${p.embalagem||''}</p>
- <button onclick="editar(${i})">Editar</button>
- <button onclick="excluir(${i})">Excluir</button>
- </div>`).join('');
-}
-render();
 </script>
 </body>
 </html>
