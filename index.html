@@ -2,281 +2,177 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AB Chemicals V5 Enterprise</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AB Chemicals V6 Enterprise</title>
 <meta name="theme-color" content="#00337A">
-
 <style>
-:root{
---primary:#00337A;
---secondary:#0072CE;
---light:#F5F7FA;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--light)}
-header{
-background:linear-gradient(135deg,var(--primary),var(--secondary));
-color:white;padding:24px;
-}
-.container{max-width:1400px;margin:auto;padding:20px}
-.grid{display:grid;grid-template-columns:350px 1fr;gap:20px}
-.card{
-background:white;border-radius:16px;padding:20px;
-box-shadow:0 2px 12px rgba(0,0,0,.08)
-}
-input,select,textarea{
-width:100%;padding:12px;margin:6px 0;
-border:1px solid #d6dce5;border-radius:10px
-}
-button{
-background:var(--secondary);
-color:white;border:none;padding:12px 16px;
-border-radius:10px;cursor:pointer;margin:4px
-}
-.catalog{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-gap:16px
-}
-.product{
-background:white;border-radius:14px;padding:15px;
-box-shadow:0 2px 10px rgba(0,0,0,.08)
-}
-.product img{
-width:100%;height:220px;object-fit:contain
-}
-.badge{
-display:inline-block;background:#E8F3FF;
-padding:5px 10px;border-radius:20px
-}
-@media(max-width:900px){
-.grid{grid-template-columns:1fr}
-.catalog{grid-template-columns:1fr}
-}
+:root{--p:#00337A;--s:#0072CE;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial;background:var(--bg)}
+header{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:20px}
+.wrap{padding:20px;max-width:1400px;margin:auto}
+.grid{display:grid;grid-template-columns:380px 1fr;gap:20px}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #d7dce5;border-radius:10px}
+button{padding:12px 14px;border:none;border-radius:10px;background:var(--s);color:#fff;cursor:pointer;margin:4px}
+.catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:15px;margin-top:15px}
+.prod{background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.prod img{width:100%;height:180px;object-fit:contain}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:15px}
+.stat{background:#fff;padding:14px;border-radius:14px;text-align:center}
+@media(max-width:900px){.grid,.stats{grid-template-columns:1fr}}
 </style>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
 </head>
 <body>
-
 <header>
-<h1>AB Chemicals Enterprise</h1>
-<p>Catálogo Comercial Profissional • Supabase Ready • PDF Premium</p>
+<h1>AB Chemicals V6 Enterprise</h1>
+<p>CRUD • Busca • PDF • Importação/Exportação • Supabase Ready</p>
 </header>
 
-<div class="container">
+<div class="wrap">
+<div class="stats">
+<div class="stat"><h3 id="tProdutos">0</h3><small>Produtos</small></div>
+<div class="stat"><h3 id="tCategorias">0</h3><small>Categorias</small></div>
+<div class="stat"><h3>PDF</h3><small>Ativo</small></div>
+<div class="stat"><h3>Mobile</h3><small>Ready</small></div>
+</div>
 
 <div class="grid">
-
 <div class="card">
-<h2>Cadastro de Produto</h2>
-
+<h2>Produto</h2>
+<input id="nome" placeholder="Nome">
 <input id="codigo" placeholder="Código">
-<input id="nome" placeholder="Nome do Produto">
-
 <select id="categoria">
 <option>Desengraxantes</option>
 <option>Desinfetantes</option>
 <option>Hospitalar</option>
 <option>Lavanderia</option>
-<option>Cozinha Industrial</option>
 </select>
-
-<input id="diluicao" placeholder="Diluição">
-<input id="embalagem" placeholder="Embalagem">
-
-<textarea id="descricao" placeholder="Descrição Técnica"></textarea>
-
+<textarea id="descricao" placeholder="Descrição"></textarea>
 <input type="file" id="imagem">
+<input type="hidden" id="editIndex">
 
-<button onclick="salvar()">Salvar Produto</button>
-<button onclick="gerarPDF()">Gerar PDF Premium</button>
+<button onclick="salvar()">Salvar</button>
+<button onclick="limpar()">Novo</button>
 <button onclick="exportar()">Exportar JSON</button>
+<button onclick="gerarPDF()">Gerar PDF</button>
+<input type="file" id="importar" accept=".json" onchange="importarJSON(event)">
 
 <hr>
-
 <h3>Supabase</h3>
 <input placeholder="SUPABASE_URL">
 <input placeholder="SUPABASE_ANON_KEY">
-
 </div>
 
 <div>
-
 <div class="card">
-<h2>Catálogo Comercial</h2>
-<input id="busca" placeholder="Pesquisar..." oninput="render()">
+<input id="busca" placeholder="Pesquisar produto..." oninput="render()">
 </div>
-
 <div id="catalogo" class="catalog"></div>
-
 </div>
-
 </div>
 </div>
 
 <script>
-
-const LOGO_BASE64 = "";
-
-let produtos = JSON.parse(localStorage.getItem('ab_enterprise')||'[]');
+let produtos=JSON.parse(localStorage.getItem('ab_v6')||'[]');
 
 function salvar(){
-
+ const idx=document.getElementById('editIndex').value;
  const file=document.getElementById('imagem').files[0];
 
- const add=(img)=>{
-   produtos.push({
-      codigo:codigo.value,
-      nome:nome.value,
-      categoria:categoria.value,
-      diluicao:diluicao.value,
-      embalagem:embalagem.value,
-      descricao:descricao.value,
-      imagem:img||''
-   });
-   render();
- }
+ const persist=(img)=>{
+  const item={
+   nome:nome.value,codigo:codigo.value,categoria:categoria.value,
+   descricao:descricao.value,imagem:img
+  };
+
+  if(idx!==""){produtos[idx]=item;} else {produtos.push(item);}
+  localStorage.setItem('ab_v6',JSON.stringify(produtos));
+  limpar(); render();
+ };
 
  if(file){
-   const r=new FileReader();
-   r.onload=()=>add(r.result);
-   r.readAsDataURL(file);
+  const r=new FileReader();
+  r.onload=()=>persist(r.result);
+  r.readAsDataURL(file);
  }else{
-   add('');
+  persist((idx!=="" && produtos[idx]) ? produtos[idx].imagem : "");
  }
 }
 
-function render(){
-
- const termo=(document.getElementById('busca')?.value||'').toLowerCase();
-
- const lista=produtos.filter(p=>
-      p.nome.toLowerCase().includes(termo) ||
-      p.categoria.toLowerCase().includes(termo)
- );
-
- document.getElementById('catalogo').innerHTML=lista.map((p,i)=>`
- <div class="product">
- ${p.imagem?`<img src="${p.imagem}">`:''}
- <h3>${p.nome}</h3>
- <span class="badge">${p.categoria}</span>
- <p><b>Código:</b> ${p.codigo}</p>
- <p><b>Diluição:</b> ${p.diluicao}</p>
- <p><b>Embalagem:</b> ${p.embalagem}</p>
- <p>${p.descricao}</p>
- <button onclick="remover(${i})">Excluir</button>
- </div>`).join('');
-
- localStorage.setItem('ab_enterprise',JSON.stringify(produtos));
+function editar(i){
+ const p=produtos[i];
+ nome.value=p.nome; codigo.value=p.codigo;
+ categoria.value=p.categoria; descricao.value=p.descricao;
+ editIndex.value=i;
+ window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function remover(i){
- produtos.splice(i,1);
- render();
+function excluir(i){
+ if(confirm('Excluir produto?')){
+  produtos.splice(i,1);
+  localStorage.setItem('ab_v6',JSON.stringify(produtos));
+  render();
+ }
+}
+
+function limpar(){
+ nome.value=''; codigo.value=''; descricao.value='';
+ imagem.value=''; editIndex.value='';
 }
 
 function exportar(){
- const blob=new Blob([JSON.stringify(produtos,null,2)],{type:'application/json'});
+ const b=new Blob([JSON.stringify(produtos,null,2)],{type:'application/json'});
  const a=document.createElement('a');
- a.href=URL.createObjectURL(blob);
- a.download='abchemicals-enterprise.json';
+ a.href=URL.createObjectURL(b);
+ a.download='abchemicals-v6.json';
  a.click();
 }
 
-function gerarPDF(){
-
- let content=[];
-
- if(LOGO_BASE64){
-   content.push({
-      image:LOGO_BASE64,
-      width:180,
-      alignment:'center',
-      margin:[0,40,0,20]
-   });
- }
-
- content.push({
-   text:'AB CHEMICALS',
-   style:'coverTitle',
-   alignment:'center'
- });
-
- content.push({
-   text:'Catálogo Comercial Profissional',
-   alignment:'center',
-   margin:[0,15,0,180]
- });
-
- content.push({text:'',pageBreak:'after'});
-
- content.push({text:'SUMÁRIO',style:'section'});
-
- produtos.forEach((p,index)=>{
-   content.push({
-      text:(index+1)+'. '+p.nome
-   });
- });
-
- content.push({text:'',pageBreak:'after'});
-
- produtos.forEach((p,index)=>{
-
-   content.push({
-      text:p.nome,
-      style:'productTitle'
-   });
-
-   if(p.imagem){
-      content.push({
-        image:p.imagem,
-        width:220,
-        alignment:'center',
-        margin:[0,10,0,10]
-      });
-   }
-
-   content.push({
-      table:{
-         widths:['*'],
-         body:[
-           [{text:'Ficha Técnica',fillColor:'#E8F3FF',bold:true}],
-           ['Categoria: '+p.categoria],
-           ['Código: '+p.codigo],
-           ['Diluição: '+p.diluicao],
-           ['Embalagem: '+p.embalagem],
-           ['Descrição: '+p.descricao]
-         ]
-      }
-   });
-
-   if(index < produtos.length-1){
-      content.push({text:'',pageBreak:'after'});
-   }
- });
-
- const doc={
-   pageSize:'A4',
-   pageMargins:[40,50,40,60],
-   footer:(current,pageCount)=>({
-      text:'AB Chemicals • Página '+current+' de '+pageCount,
-      alignment:'center'
-   }),
-   content,
-   styles:{
-      coverTitle:{fontSize:28,bold:true},
-      section:{fontSize:20,bold:true},
-      productTitle:{fontSize:18,bold:true,color:'#00337A'}
-   }
+function importarJSON(e){
+ const f=e.target.files[0];
+ if(!f) return;
+ const r=new FileReader();
+ r.onload=()=>{
+   produtos=JSON.parse(r.result);
+   localStorage.setItem('ab_v6',JSON.stringify(produtos));
+   render();
  };
-
- pdfMake.createPdf(doc).download('AB_Chemicals_Catalogo_Enterprise.pdf');
+ r.readAsText(f);
 }
 
-render();
+function gerarPDF(){
+ let c=[{text:'AB Chemicals - Catálogo Comercial',fontSize:22,bold:true}];
+ produtos.forEach(p=>{
+  c.push({text:p.nome,fontSize:16,bold:true,margin:[0,10,0,5]});
+  c.push({text:'Código: '+p.codigo});
+  c.push({text:'Categoria: '+p.categoria});
+  c.push({text:p.descricao});
+ });
+ pdfMake.createPdf({
+  content:c,
+  footer:(n,t)=>({text:'Página '+n+' de '+t,alignment:'center'})
+ }).download('AB_Chemicals_V6.pdf');
+}
 
+function render(){
+ const t=(busca.value||'').toLowerCase();
+ const lista=produtos.filter(p=>p.nome.toLowerCase().includes(t)||p.categoria.toLowerCase().includes(t));
+ document.getElementById('tProdutos').innerText=produtos.length;
+ document.getElementById('tCategorias').innerText=[...new Set(produtos.map(x=>x.categoria))].length;
+
+ catalogo.innerHTML=lista.map((p,i)=>`
+ <div class="prod">
+ ${p.imagem?`<img src="${p.imagem}">`:''}
+ <h3>${p.nome}</h3>
+ <p>${p.codigo}</p>
+ <p>${p.categoria}</p>
+ <button onclick="editar(${i})">Editar</button>
+ <button onclick="excluir(${i})">Excluir</button>
+ </div>`).join('');
+}
+render();
 </script>
 </body>
 </html>
