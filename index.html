@@ -83,8 +83,11 @@ function salvar(){
 
  const persist=(img)=>{
   const item={
-   nome:nome.value,codigo:codigo.value,categoria:categoria.value,
-   descricao:descricao.value,imagem:img
+   nome:document.getElementById('nome').value,
+   codigo:document.getElementById('codigo').value,
+   categoria:document.getElementById('categoria').value,
+   descricao:document.getElementById('descricao').value,
+   imagem:img
   };
 
   if(idx!==""){produtos[idx]=item;} else {produtos.push(item);}
@@ -103,9 +106,11 @@ function salvar(){
 
 function editar(i){
  const p=produtos[i];
- nome.value=p.nome; codigo.value=p.codigo;
- categoria.value=p.categoria; descricao.value=p.descricao;
- editIndex.value=i;
+ document.getElementById('nome').value=p.nome;
+ document.getElementById('codigo').value=p.codigo;
+ document.getElementById('categoria').value=p.categoria;
+ document.getElementById('descricao').value=p.descricao;
+ document.getElementById('editIndex').value=i;
  window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -118,8 +123,11 @@ function excluir(i){
 }
 
 function limpar(){
- nome.value=''; codigo.value=''; descricao.value='';
- imagem.value=''; editIndex.value='';
+ document.getElementById('nome').value='';
+ document.getElementById('codigo').value='';
+ document.getElementById('descricao').value='';
+ document.getElementById('imagem').value='';
+ document.getElementById('editIndex').value='';
 }
 
 function exportar(){
@@ -157,12 +165,12 @@ function gerarPDF(){
 }
 
 function render(){
- const t=(busca.value||'').toLowerCase();
+ const t=(document.getElementById('busca').value||'').toLowerCase();
  const lista=produtos.filter(p=>p.nome.toLowerCase().includes(t)||p.categoria.toLowerCase().includes(t));
  document.getElementById('tProdutos').innerText=produtos.length;
  document.getElementById('tCategorias').innerText=[...new Set(produtos.map(x=>x.categoria))].length;
 
- catalogo.innerHTML=lista.map((p,i)=>`
+ document.getElementById('catalogo').innerHTML=lista.map((p,i)=>`
  <div class="prod">
  ${p.imagem?`<img src="${p.imagem}">`:''}
  <h3>${p.nome}</h3>
