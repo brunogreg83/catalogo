@@ -2,61 +2,100 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AB Chemicals V7 Production</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AB Chemicals V7 Firebase</title>
 <style>
-:root{--primary:#00337A;--accent:#0072CE;--gray:#5A6673}
+:root{--p:#00337A;--a:#0072CE}
 body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa}
-header{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:20px;text-align:center}
+header{background:linear-gradient(135deg,var(--p),var(--a));color:#fff;padding:20px;text-align:center}
 .container{max-width:1200px;margin:auto;padding:20px}
-.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px}
-input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
-button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+.card{background:#fff;padding:20px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .grid{display:grid;grid-template-columns:350px 1fr;gap:20px}
+input,textarea{width:100%;padding:10px;margin:6px 0;box-sizing:border-box}
+button{background:var(--a);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+.item{border-bottom:1px solid #ddd;padding:10px 0}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
 <h1>AB Chemicals</h1>
-<p>Soluções em limpeza profissional</p>
+<p>Catálogo Firebase</p>
 </header>
 
 <div class="container">
 <div class="grid">
 <div class="card">
-<h2>Login</h2>
+<h3>Login</h3>
 <input id="email" placeholder="Email">
 <input id="senha" type="password" placeholder="Senha">
 <button onclick="login()">Entrar</button>
 
-<h2>Produto</h2>
+<h3>Produto</h3>
 <input id="nome" placeholder="Nome">
 <input id="codigo" placeholder="Código">
 <textarea id="descricao" placeholder="Descrição"></textarea>
-<button onclick="salvar()">Salvar</button>
+<button onclick="salvarProduto()">Salvar Produto</button>
 </div>
 
 <div class="card">
-<h2>Catálogo</h2>
-<div id="catalogo"></div>
+<h3>Catálogo</h3>
+<div id="catalogo">Carregando...</div>
 </div>
 </div>
 </div>
 
-<script>
-const SUPABASE_URL='https://ctxnwhcjruuamjybfkdn.supabase.co';
-const SUPABASE_KEY='sb_publishable_gpsBShUq0dhncdXjyLcGzQ_ucUH7Cln';
-const supabaseClient = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-async function login(){
- alert('Configure usuários no Supabase Auth para utilizar o login.');
+const firebaseConfig = {
+  apiKey: "AIzaSyC8oIu9BJBmM2QMQHPKqIEegYtUny1uDJE",
+  authDomain: "catalogo-68e13.firebaseapp.com",
+  projectId: "catalogo-68e13",
+  storageBucket: "catalogo-68e13.firebasestorage.app",
+  messagingSenderId: "946056802788",
+  appId: "1:946056802788:web:a9d30721fb48a7a85f57f1",
+  measurementId: "G-ZQMSR4KWCT"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.login = async function(){
+  try{
+    await signInWithEmailAndPassword(auth,
+      document.getElementById('email').value,
+      document.getElementById('senha').value
+    );
+    alert('Login realizado');
+  }catch(e){ alert(e.message); }
 }
 
-async function salvar(){
- alert('Versão base V7 gerada. Integração completa pode ser expandida nesta mesma base.');
+window.salvarProduto = async function(){
+  try{
+    await addDoc(collection(db,'produtos'),{
+      nome: document.getElementById('nome').value,
+      codigo: document.getElementById('codigo').value,
+      descricao: document.getElementById('descricao').value,
+      createdAt: new Date().toISOString()
+    });
+    await carregarProdutos();
+    alert('Produto salvo');
+  }catch(e){ alert(e.message); }
 }
+
+async function carregarProdutos(){
+  const snap = await getDocs(collection(db,'produtos'));
+  document.getElementById('catalogo').innerHTML = snap.docs.map(d=>{
+    const p=d.data();
+    return `<div class="item"><strong>${p.nome||''}</strong><br>${p.codigo||''}<br>${p.descricao||''}</div>`;
+  }).join('') || 'Nenhum produto cadastrado';
+}
+
+carregarProdutos();
 </script>
 </body>
 </html>
