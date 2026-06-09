@@ -5,429 +5,188 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AB Chemicals — Catálogo</title>
 <style>
-:root{
-  --p:#00337A;--a:#0072CE;--light:#e8f0fb;--success:#1a7a4a;
-  --danger:#c0392b;--warn:#e67e22;--gray:#f5f7fa;--border:#dde3ed;
-  --text:#1a1f2e;--muted:#6b7280;--white:#fff;
-}
+:root{--p:#00337A;--a:#0072CE;--light:#e8f0fb;--success:#1a7a4a;--danger:#c0392b;--gray:#f5f7fa;--border:#dde3ed;--text:#1a1f2e;--muted:#6b7280;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:var(--gray);color:var(--text);font-size:15px}
 
-header{background:linear-gradient(135deg,var(--p) 0%,var(--a) 100%);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,51,122,.25)}
-header svg{flex-shrink:0}
-header h1{font-size:1.3rem;font-weight:700;letter-spacing:.5px}
+header{background:linear-gradient(135deg,var(--p),var(--a));color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,51,122,.25)}
+header h1{font-size:1.3rem;font-weight:700}
 header p{font-size:.8rem;opacity:.8;margin-top:2px}
-.header-actions{margin-left:auto;display:flex;gap:8px}
 
-nav{background:#fff;border-bottom:1px solid var(--border);display:flex;gap:0}
-.nav-btn{padding:12px 20px;border:none;background:none;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;transition:.2s}
+nav{background:#fff;border-bottom:1px solid var(--border);display:flex}
+.nav-btn{padding:12px 22px;border:none;background:none;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;transition:.2s}
 .nav-btn.active{color:var(--a);border-bottom-color:var(--a)}
 
-.container{max-width:1280px;margin:auto;padding:24px 20px}
+.container{max-width:960px;margin:auto;padding:28px 20px}
 .page{display:none}.page.active{display:block}
 
-/* CARDS */
-.card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:20px;margin-bottom:16px}
-.card-title{font-size:.95rem;font-weight:600;color:var(--p);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title svg{color:var(--a)}
+.card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:16px}
+.card-title{font-size:1rem;font-weight:600;color:var(--p);margin-bottom:20px}
 
-/* FORM */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-full{grid-column:1/-1}
-.field{display:flex;flex-direction:column;gap:4px}
-label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-input,textarea,select{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:.9rem;font-family:inherit;transition:.2s;background:#fff;color:var(--text)}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(0,114,206,.12)}
-textarea{resize:vertical;min-height:80px}
-.input-unit{display:flex;align-items:center}
-.input-unit input{border-radius:8px 0 0 8px;flex:1}
-.unit-badge{background:var(--light);border:1.5px solid var(--border);border-left:none;border-radius:0 8px 8px 0;padding:9px 10px;font-size:.8rem;color:var(--muted);white-space:nowrap}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+input,textarea{border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;font-size:.92rem;font-family:inherit;transition:.2s;background:#fff;color:var(--text);width:100%}
+input:focus,textarea:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(0,114,206,.12)}
+textarea{resize:vertical;min-height:90px}
 
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
-.badge-blue{background:var(--light);color:var(--p)}
-.badge-green{background:#d4edda;color:var(--success)}
-.badge-red{background:#fde;color:var(--danger)}
-.badge-warn{background:#fef3cd;color:var(--warn)}
-.badge-gray{background:#f0f0f0;color:#555}
-
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;transition:.18s;border:1.5px solid transparent}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer;transition:.18s;border:1.5px solid transparent}
 .btn-primary{background:var(--a);color:#fff;border-color:var(--a)}
 .btn-primary:hover{background:#005fa8}
 .btn-outline{background:#fff;color:var(--a);border-color:var(--a)}
 .btn-outline:hover{background:var(--light)}
 .btn-danger{background:#fff;color:var(--danger);border-color:var(--danger)}
-.btn-danger:hover{background:#fde}
-.btn-sm{padding:5px 10px;font-size:.78rem}
+.btn-danger:hover{background:#fde8e8}
+.btn-sm{padding:5px 11px;font-size:.78rem}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* CATALOG GRID */
-.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.search-bar{display:flex;gap:10px;margin-bottom:20px}
+.search-bar input{flex:1}
+
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 .product-card{background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;transition:.2s;display:flex;flex-direction:column}
 .product-card:hover{box-shadow:0 4px 16px rgba(0,51,122,.12);transform:translateY(-2px)}
-.product-img{height:140px;background:linear-gradient(135deg,var(--light),#c8ddf5);display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative}
-.product-img .stock-badge{position:absolute;top:8px;right:8px}
-.product-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:6px}
-.product-name{font-size:.95rem;font-weight:700;color:var(--text)}
-.product-code{font-size:.75rem;color:var(--muted);font-family:monospace}
-.product-desc{font-size:.82rem;color:var(--muted);line-height:1.5;flex:1}
-.product-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.product-price{font-size:1.05rem;font-weight:700;color:var(--success)}
+.product-img{height:110px;background:linear-gradient(135deg,var(--light),#c8ddf5);display:flex;align-items:center;justify-content:center;font-size:2.6rem}
+.product-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:5px}
+.product-name{font-size:.97rem;font-weight:700}
+.meta-row{font-size:.8rem;color:var(--muted);line-height:1.5}
+.meta-label{font-weight:600;color:var(--p)}
 .product-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;background:#fafbfc}
 
-/* SEARCH BAR */
-.search-bar{display:flex;gap:10px;margin-bottom:20px;align-items:center;flex-wrap:wrap}
-.search-bar input{flex:1;min-width:200px}
-.search-bar select{min-width:160px}
-
-/* TABLE */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.85rem}
-thead th{background:var(--light);color:var(--p);font-weight:600;padding:10px 12px;text-align:left;white-space:nowrap;border-bottom:2px solid var(--border)}
-tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+thead th{background:var(--light);color:var(--p);font-weight:600;padding:10px 12px;text-align:left;border-bottom:2px solid var(--border)}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
 tbody tr:hover{background:#f9fbff}
 
-/* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;padding:24px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal{background:#fff;border-radius:14px;padding:26px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .modal-header h3{font-size:1.05rem;font-weight:700;color:var(--p)}
 
-/* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:10px;color:#fff;font-weight:600;font-size:.85rem;z-index:300;opacity:0;transition:.3s;pointer-events:none;display:flex;align-items:center;gap:8px}
+.ficha-row{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ficha-row:last-child{border:none}
+.ficha-key{font-size:.73rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.ficha-val{font-size:.88rem;color:var(--text);line-height:1.55}
+
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:10px;color:#fff;font-weight:600;font-size:.85rem;z-index:300;opacity:0;transition:.3s;pointer-events:none}
 .toast.show{opacity:1}
 .toast.success{background:var(--success)}
 .toast.error{background:var(--danger)}
 
-/* LOADER */
-.loader{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--muted)}
-.spinner{width:22px;height:22px;border:3px solid var(--light);border-top-color:var(--a);border-radius:50%;animation:spin .7s linear infinite}
+.loader{display:flex;align-items:center;justify-content:center;padding:50px;gap:10px;color:var(--muted)}
+.spinner{width:22px;height:22px;border:3px solid var(--light);border-top-color:var(--a);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:.9rem}
 
-/* EMPTY */
-.empty{text-align:center;padding:60px 20px;color:var(--muted)}
-.empty-icon{font-size:2.5rem;margin-bottom:12px}
-
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
-.stat-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:16px}
-.stat-label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.stat-value{font-size:1.5rem;font-weight:700;color:var(--p);margin-top:4px}
-
-/* RESPONSIVE */
-@media(max-width:700px){
-  .form-grid{grid-template-columns:1fr}
-  header{padding:14px 16px}
-  nav{overflow-x:auto}
-  .nav-btn{white-space:nowrap;padding:12px 14px;font-size:.8rem}
-}
-
-/* FICHA TÉCNICA */
-.ficha-section{margin-top:12px}
-.ficha-title{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
-.ficha-row{display:flex;justify-content:space-between;padding:5px 0;font-size:.83rem;border-bottom:1px dotted var(--border)}
-.ficha-row:last-child{border:none}
-.ficha-key{color:var(--muted)}
-.ficha-val{font-weight:600;text-align:right}
+@media(max-width:600px){nav{overflow-x:auto}.nav-btn{white-space:nowrap}}
 </style>
 </head>
 <body>
 
 <header>
-  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-    <rect width="36" height="36" rx="8" fill="rgba(255,255,255,.15)"/>
-    <path d="M10 26 L18 10 L26 26 M13.5 20 h9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="10" cy="26" r="2" fill="white"/><circle cx="26" cy="26" r="2" fill="white"/>
+  <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+    <rect width="34" height="34" rx="8" fill="rgba(255,255,255,.15)"/>
+    <path d="M9 25 L17 9 L25 25 M12.5 19 h9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
   <div>
     <h1>AB Chemicals</h1>
-    <p>Sistema de Catálogo de Produtos</p>
+    <p>Catálogo de Produtos</p>
   </div>
 </header>
 
 <nav>
   <button class="nav-btn active" onclick="showPage('catalogo',this)">🧪 Catálogo</button>
-  <button class="nav-btn" onclick="showPage('cadastro',this)">➕ Cadastrar Produto</button>
+  <button class="nav-btn" onclick="showPage('cadastro',this)">➕ Cadastrar</button>
   <button class="nav-btn" onclick="showPage('lista',this)">📋 Gestão</button>
 </nav>
 
 <div class="container">
 
-  <!-- CATÁLOGO VENDEDOR -->
+  <!-- CATÁLOGO -->
   <div id="page-catalogo" class="page active">
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="stat-label">Total de Produtos</div><div class="stat-value" id="statTotal">—</div></div>
-      <div class="stat-card"><div class="stat-label">Em Estoque</div><div class="stat-value" id="statEstoque">—</div></div>
-      <div class="stat-card"><div class="stat-label">Categorias</div><div class="stat-value" id="statCat">—</div></div>
-      <div class="stat-card"><div class="stat-label">Novos (7 dias)</div><div class="stat-value" id="statNovos">—</div></div>
-    </div>
-
     <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="🔍  Buscar por nome, código, CAS..." oninput="filtrarProdutos()">
-      <select id="filterCat" onchange="filtrarProdutos()">
-        <option value="">Todas as categorias</option>
-      </select>
-      <select id="filterEstoque" onchange="filtrarProdutos()">
-        <option value="">Todos os estoques</option>
-        <option value="disponivel">Disponível</option>
-        <option value="baixo">Estoque baixo</option>
-        <option value="esgotado">Esgotado</option>
-      </select>
+      <input type="text" id="searchInput" placeholder="🔍  Buscar produto..." oninput="filtrarProdutos()">
     </div>
-
     <div id="catalogoGrid" class="catalog-grid">
-      <div class="loader"><div class="spinner"></div> Carregando produtos...</div>
+      <div class="loader"><div class="spinner"></div> Carregando...</div>
     </div>
   </div>
 
   <!-- CADASTRO -->
   <div id="page-cadastro" class="page">
     <div class="card">
-      <div class="card-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-        Cadastrar Novo Produto
+      <div class="card-title">Cadastrar Produto</div>
+
+      <div class="field">
+        <label>Produto *</label>
+        <input id="f_nome" placeholder="Nome do produto">
+      </div>
+      <div class="field">
+        <label>Embalagem</label>
+        <input id="f_embalagem" placeholder="Ex: Frasco 1L, Galão 5L, Saco 25kg...">
+      </div>
+      <div class="field">
+        <label>Diluição</label>
+        <input id="f_diluicao" placeholder="Ex: 1:10 em água, 5%, Concentrado puro...">
+      </div>
+      <div class="field">
+        <label>Aplicação</label>
+        <textarea id="f_aplicacao" placeholder="Descreva as aplicações e usos do produto..."></textarea>
       </div>
 
-      <div style="margin-bottom:16px">
-        <div class="ficha-title">Identificação</div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Nome do Produto *</label>
-            <input id="f_nome" placeholder="Ex: Ácido Sulfúrico PA">
-          </div>
-          <div class="field">
-            <label>Código Interno *</label>
-            <input id="f_codigo" placeholder="Ex: AB-001">
-          </div>
-          <div class="field">
-            <label>Número CAS</label>
-            <input id="f_cas" placeholder="Ex: 7664-93-9">
-          </div>
-          <div class="field">
-            <label>Fórmula Molecular</label>
-            <input id="f_formula" placeholder="Ex: H₂SO₄">
-          </div>
-          <div class="field">
-            <label>Categoria</label>
-            <select id="f_categoria">
-              <option value="">Selecione...</option>
-              <option>Ácidos</option>
-              <option>Bases / Álcalis</option>
-              <option>Solventes</option>
-              <option>Sais</option>
-              <option>Oxidantes</option>
-              <option>Reagentes Analíticos</option>
-              <option>Indicadores</option>
-              <option>Tampões / Buffers</option>
-              <option>Outros</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Grau de Pureza</label>
-            <select id="f_pureza">
-              <option value="">Selecione...</option>
-              <option>P.A. (Para Análise)</option>
-              <option>Grau HPLC</option>
-              <option>Grau GC</option>
-              <option>Técnico</option>
-              <option>USP/Farmacêutico</option>
-              <option>Grau Alimentar</option>
-              <option>Ultra Puro</option>
-            </select>
-          </div>
-          <div class="field form-full">
-            <label>Descrição / Aplicações</label>
-            <textarea id="f_descricao" placeholder="Descreva o produto, suas principais aplicações e usos..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px">
-        <div class="ficha-title">Informações Físico-Químicas</div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Estado Físico</label>
-            <select id="f_estado">
-              <option value="">Selecione...</option>
-              <option>Líquido</option>
-              <option>Sólido (Pó)</option>
-              <option>Sólido (Cristal/Granulado)</option>
-              <option>Gasoso</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Concentração</label>
-            <input id="f_concentracao" placeholder="Ex: 98%, 1M, 37%">
-          </div>
-          <div class="field">
-            <label>Densidade (g/mL)</label>
-            <input id="f_densidade" placeholder="Ex: 1.84">
-          </div>
-          <div class="field">
-            <label>pH (se aplicável)</label>
-            <input id="f_ph" placeholder="Ex: < 1, 7.0, 12–14">
-          </div>
-          <div class="field">
-            <label>Ponto de Ebulição (°C)</label>
-            <input id="f_ebulicao" placeholder="Ex: 337">
-          </div>
-          <div class="field">
-            <label>Ponto de Fusão (°C)</label>
-            <input id="f_fusao" placeholder="Ex: 10">
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px">
-        <div class="ficha-title">Segurança e Classificação</div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Classe de Risco (GHS)</label>
-            <select id="f_risco">
-              <option value="">Selecione...</option>
-              <option>Explosivos</option>
-              <option>Gases Inflamáveis</option>
-              <option>Líquidos Inflamáveis</option>
-              <option>Sólidos Inflamáveis</option>
-              <option>Oxidantes</option>
-              <option>Corrosivos</option>
-              <option>Tóxicos</option>
-              <option>Nocivos / Irritantes</option>
-              <option>Não Classificado / Baixo Risco</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Nº ONU (transporte)</label>
-            <input id="f_onu" placeholder="Ex: UN 1830">
-          </div>
-          <div class="field form-full">
-            <label>Frases de Segurança (H/P)</label>
-            <input id="f_seguranca" placeholder="Ex: H290, H314, H335 — P260, P280, P305">
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px">
-        <div class="ficha-title">Embalagem, Estoque e Preço</div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Embalagem (tamanho)</label>
-            <input id="f_embalagem" placeholder="Ex: 1L, 5L, 500g, 25kg">
-          </div>
-          <div class="field">
-            <label>Tipo de Embalagem</label>
-            <select id="f_tipoEmbalagem">
-              <option value="">Selecione...</option>
-              <option>Frasco Âmbar</option>
-              <option>Frasco HDPE</option>
-              <option>Frasco de Vidro</option>
-              <option>Galão HDPE</option>
-              <option>Tambor</option>
-              <option>Saco Multifolhado</option>
-              <option>Bisnaga Alumínio</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Quantidade em Estoque</label>
-            <input id="f_estoque" type="number" min="0" placeholder="0">
-          </div>
-          <div class="field">
-            <label>Estoque Mínimo (alerta)</label>
-            <input id="f_estoqueMin" type="number" min="0" placeholder="5">
-          </div>
-          <div class="field">
-            <label>Preço de Venda (R$)</label>
-            <input id="f_preco" type="number" min="0" step="0.01" placeholder="0,00">
-          </div>
-          <div class="field">
-            <label>Fornecedor</label>
-            <input id="f_fornecedor" placeholder="Ex: Sigma-Aldrich, Synth...">
-          </div>
-          <div class="field">
-            <label>Condição de Armazenamento</label>
-            <select id="f_armazenamento">
-              <option value="">Selecione...</option>
-              <option>Temperatura Ambiente</option>
-              <option>Refrigerado (2–8°C)</option>
-              <option>Congelado (–20°C)</option>
-              <option>Longe da Luz</option>
-              <option>Longe de Fontes de Calor</option>
-              <option>Local Ventilado</option>
-              <option>Sala de Produtos Corrosivos</option>
-              <option>Sala de Inflamáveis</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Validade / Prazo de Uso</label>
-            <input id="f_validade" placeholder="Ex: 2 anos, Até 12/2027">
-          </div>
-          <div class="field form-full">
-            <label>Observações Adicionais</label>
-            <textarea id="f_obs" placeholder="Informações extras, notas de uso, incompatibilidades..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-primary" id="btnSalvar" onclick="salvarProduto()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Salvar Produto
-        </button>
-        <button class="btn btn-outline" onclick="limparForm()">Limpar Formulário</button>
+      <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="btnSalvar" onclick="salvarProduto()">💾 Salvar Produto</button>
+        <button class="btn btn-outline" onclick="limparForm()">Limpar</button>
       </div>
     </div>
   </div>
 
-  <!-- GESTÃO / LISTA -->
+  <!-- GESTÃO -->
   <div id="page-lista" class="page">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <div class="card-title" style="margin:0">📋 Todos os Produtos</div>
         <input type="text" id="listaSearch" placeholder="🔍 Filtrar..." oninput="filtrarLista()" style="width:220px">
       </div>
       <div class="table-wrap">
-        <table id="tabelaProdutos">
+        <table>
           <thead>
             <tr>
-              <th>Código</th>
-              <th>Nome</th>
-              <th>Categoria</th>
-              <th>Pureza</th>
-              <th>Estoque</th>
-              <th>Preço</th>
-              <th>Status</th>
+              <th>Produto</th>
+              <th>Embalagem</th>
+              <th>Diluição</th>
+              <th>Aplicação</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody id="tabelaBody">
-            <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner" style="margin:auto"></div></td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:30px"><div class="spinner" style="margin:auto"></div></td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-</div><!-- /container -->
+</div>
 
-<!-- MODAL PRODUTO -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modalProd">
   <div class="modal">
     <div class="modal-header">
       <h3 id="modalTitle">Ficha do Produto</h3>
-      <button class="btn btn-sm btn-outline" onclick="fecharModal()">✕ Fechar</button>
+      <button class="btn btn-sm btn-outline" onclick="fecharModal()">✕</button>
     </div>
     <div id="modalBody"></div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8oIu9BJBmM2QMQHPKqIEegYtUny1uDJE",
@@ -440,274 +199,148 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-let todosOsProdutos = [];
+let produtos = [];
 let editandoId = null;
 
-// ──────────────────────── TOAST ────────────────────────
 window.showToast = (msg, tipo='success') => {
   const t = document.getElementById('toast');
   t.className = `toast ${tipo} show`;
-  t.innerHTML = (tipo==='success' ? '✓ ' : '✕ ') + msg;
-  setTimeout(() => t.className='toast', 3000);
+  t.textContent = (tipo==='success'?'✓ ':'✕ ') + msg;
+  setTimeout(()=>t.className='toast', 3000);
 };
 
-// ──────────────────────── SALVAR ────────────────────────
 window.salvarProduto = async () => {
-  const btn = document.getElementById('btnSalvar');
   const nome = document.getElementById('f_nome').value.trim();
-  const codigo = document.getElementById('f_codigo').value.trim();
-  if(!nome || !codigo){ showToast('Nome e código são obrigatórios!','error'); return; }
+  if(!nome){ showToast('Informe o nome do produto','error'); return; }
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true; btn.textContent = 'Salvando...';
 
-  const estoqueVal = parseInt(document.getElementById('f_estoque').value)||0;
-  const estoqueMin = parseInt(document.getElementById('f_estoqueMin').value)||0;
-  let statusEstoque = 'disponivel';
-  if(estoqueVal === 0) statusEstoque = 'esgotado';
-  else if(estoqueVal <= estoqueMin) statusEstoque = 'baixo';
-
-  const produto = {
-    nome, codigo,
-    cas: document.getElementById('f_cas').value.trim(),
-    formula: document.getElementById('f_formula').value.trim(),
-    categoria: document.getElementById('f_categoria').value,
-    pureza: document.getElementById('f_pureza').value,
-    descricao: document.getElementById('f_descricao').value.trim(),
-    estado: document.getElementById('f_estado').value,
-    concentracao: document.getElementById('f_concentracao').value.trim(),
-    densidade: document.getElementById('f_densidade').value.trim(),
-    ph: document.getElementById('f_ph').value.trim(),
-    ebulicao: document.getElementById('f_ebulicao').value.trim(),
-    fusao: document.getElementById('f_fusao').value.trim(),
-    risco: document.getElementById('f_risco').value,
-    onu: document.getElementById('f_onu').value.trim(),
-    seguranca: document.getElementById('f_seguranca').value.trim(),
+  const dados = {
+    nome,
     embalagem: document.getElementById('f_embalagem').value.trim(),
-    tipoEmbalagem: document.getElementById('f_tipoEmbalagem').value,
-    estoque: estoqueVal,
-    estoqueMin: estoqueMin,
-    statusEstoque,
-    preco: parseFloat(document.getElementById('f_preco').value)||0,
-    fornecedor: document.getElementById('f_fornecedor').value.trim(),
-    armazenamento: document.getElementById('f_armazenamento').value,
-    validade: document.getElementById('f_validade').value.trim(),
-    obs: document.getElementById('f_obs').value.trim(),
+    diluicao:  document.getElementById('f_diluicao').value.trim(),
+    aplicacao: document.getElementById('f_aplicacao').value.trim(),
   };
-
-  btn.disabled = true;
-  btn.textContent = 'Salvando...';
 
   try {
     if(editandoId){
-      await updateDoc(doc(db,'produtos',editandoId), {...produto, updatedAt: new Date().toISOString()});
-      showToast('Produto atualizado com sucesso!');
+      await updateDoc(doc(db,'produtos',editandoId), dados);
+      showToast('Produto atualizado!');
       editandoId = null;
-      btn.innerHTML = '💾 Salvar Produto';
     } else {
-      produto.createdAt = new Date().toISOString();
-      await addDoc(collection(db,'produtos'), produto);
-      showToast('Produto cadastrado com sucesso!');
+      dados.createdAt = new Date().toISOString();
+      await addDoc(collection(db,'produtos'), dados);
+      showToast('Produto cadastrado!');
     }
     limparForm();
-    await carregarProdutos();
+    await carregar();
     showPage('catalogo', document.querySelector('.nav-btn'));
-  } catch(e) {
-    showToast('Erro ao salvar: ' + e.message, 'error');
-  }
-  btn.disabled = false;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Produto';
+  } catch(e){ showToast('Erro: '+e.message,'error'); }
+
+  btn.disabled = false; btn.textContent = '💾 Salvar Produto';
 };
 
-// ──────────────────────── CARREGAR ────────────────────────
-async function carregarProdutos(){
+async function carregar(){
   try {
     const snap = await getDocs(query(collection(db,'produtos'), orderBy('createdAt','desc')));
-    todosOsProdutos = snap.docs.map(d => ({id:d.id,...d.data()}));
-    renderCatalogo(todosOsProdutos);
-    renderTabela(todosOsProdutos);
-    atualizarStats(todosOsProdutos);
-    atualizarFiltroCategoria(todosOsProdutos);
-  } catch(e) {
-    document.getElementById('catalogoGrid').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Erro ao carregar: ${e.message}</p></div>`;
+    produtos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderCatalogo(produtos);
+    renderTabela(produtos);
+  } catch(e){
+    document.getElementById('catalogoGrid').innerHTML = `<div class="empty">Erro ao carregar: ${e.message}</div>`;
   }
 }
 
-// ──────────────────────── RENDER CATÁLOGO ────────────────────────
 function renderCatalogo(lista){
   const g = document.getElementById('catalogoGrid');
-  if(!lista.length){ g.innerHTML = '<div class="empty"><div class="empty-icon">🧪</div><p>Nenhum produto encontrado</p></div>'; return; }
-  const icones = {'Ácidos':'🧪','Bases / Álcalis':'⚗️','Solventes':'💧','Sais':'🔬','Oxidantes':'🔥','Reagentes Analíticos':'⚖️','Indicadores':'🌈','Tampões / Buffers':'🧫','Outros':'📦'};
-  g.innerHTML = lista.map(p => {
-    const estoqueInfo = badgeEstoque(p);
-    const precoStr = p.preco > 0 ? `R$ ${p.preco.toFixed(2).replace('.',',')}` : 'Consulte';
-    return `<div class="product-card">
-      <div class="product-img">
-        <span style="font-size:2.8rem">${icones[p.categoria]||'🧬'}</span>
-        <div class="stock-badge">${estoqueInfo.badge}</div>
-      </div>
+  if(!lista.length){ g.innerHTML='<div class="empty">🧪 Nenhum produto encontrado</div>'; return; }
+  g.innerHTML = lista.map(p=>`
+    <div class="product-card">
+      <div class="product-img">🧪</div>
       <div class="product-body">
         <div class="product-name">${p.nome}</div>
-        <div class="product-code">${p.codigo}${p.cas?' · CAS: '+p.cas:''}</div>
-        ${p.descricao ? `<div class="product-desc">${p.descricao.substring(0,100)}${p.descricao.length>100?'…':''}</div>` : ''}
-        <div class="product-meta">
-          ${p.categoria?`<span class="badge badge-blue">${p.categoria}</span>`:''}
-          ${p.pureza?`<span class="badge badge-gray">${p.pureza}</span>`:''}
-          ${p.embalagem?`<span class="badge badge-gray">📦 ${p.embalagem}</span>`:''}
-          ${p.risco?`<span class="badge badge-warn">⚠️ ${p.risco.split(' ')[0]}</span>`:''}
-        </div>
-        <div class="product-price" style="margin-top:6px">${precoStr}</div>
+        ${p.embalagem?`<div class="meta-row"><span class="meta-label">Embalagem:</span> ${p.embalagem}</div>`:''}
+        ${p.diluicao?`<div class="meta-row"><span class="meta-label">Diluição:</span> ${p.diluicao}</div>`:''}
+        ${p.aplicacao?`<div class="meta-row" style="flex:1">${p.aplicacao.substring(0,90)}${p.aplicacao.length>90?'…':''}</div>`:''}
       </div>
       <div class="product-footer">
-        <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄 Ver Ficha</button>
+        <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄 Ver</button>
         <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}')">✏️ Editar</button>
       </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
-// ──────────────────────── RENDER TABELA ────────────────────────
 function renderTabela(lista){
   const b = document.getElementById('tabelaBody');
-  if(!lista.length){ b.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Nenhum produto</td></tr>'; return; }
-  b.innerHTML = lista.map(p => {
-    const eb = badgeEstoque(p);
-    const precoStr = p.preco > 0 ? `R$ ${p.preco.toFixed(2).replace('.',',')}` : '—';
-    return `<tr>
-      <td><code>${p.codigo||'—'}</code></td>
-      <td><strong>${p.nome}</strong>${p.formula?`<br><small style="color:var(--muted)">${p.formula}</small>`:''}</td>
-      <td>${p.categoria||'—'}</td>
-      <td>${p.pureza||'—'}</td>
-      <td>${p.estoque>=0?p.estoque:'—'} ${eb.badge}</td>
-      <td>${precoStr}</td>
-      <td>${eb.badge}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄</button>
-        <button class="btn btn-outline btn-sm" onclick="editarProduto('${p.id}')">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome.replace(/'/g,'')}')">🗑️</button>
+  if(!lista.length){ b.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">Nenhum produto</td></tr>'; return; }
+  b.innerHTML = lista.map(p=>`
+    <tr>
+      <td><strong>${p.nome}</strong></td>
+      <td>${p.embalagem||'—'}</td>
+      <td>${p.diluicao||'—'}</td>
+      <td style="max-width:200px">${p.aplicacao||'—'}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄</button>
+          <button class="btn btn-outline btn-sm" onclick="editarProduto('${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome.replace(/'/g,'')}')">🗑️</button>
+        </div>
       </td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 }
 
-// ──────────────────────── STATS ────────────────────────
-function atualizarStats(lista){
-  document.getElementById('statTotal').textContent = lista.length;
-  document.getElementById('statEstoque').textContent = lista.filter(p=>p.statusEstoque==='disponivel').length;
-  const cats = new Set(lista.map(p=>p.categoria).filter(Boolean));
-  document.getElementById('statCat').textContent = cats.size;
-  const semana = Date.now() - 7*24*60*60*1000;
-  document.getElementById('statNovos').textContent = lista.filter(p=>new Date(p.createdAt).getTime()>semana).length;
-}
-
-// ──────────────────────── FILTRO CATEGORIA ────────────────────────
-function atualizarFiltroCategoria(lista){
-  const sel = document.getElementById('filterCat');
-  const cats = [...new Set(lista.map(p=>p.categoria).filter(Boolean))].sort();
-  const opt = sel.options[0];
-  sel.innerHTML = '';
-  sel.appendChild(opt);
-  cats.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
-}
-
-// ──────────────────────── FILTRAR ────────────────────────
 window.filtrarProdutos = () => {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const cat = document.getElementById('filterCat').value;
-  const est = document.getElementById('filterEstoque').value;
-  const res = todosOsProdutos.filter(p => {
-    const match = !q || [p.nome,p.codigo,p.cas,p.formula,p.descricao].some(v=>v&&v.toLowerCase().includes(q));
-    const matchCat = !cat || p.categoria===cat;
-    const matchEst = !est || p.statusEstoque===est;
-    return match && matchCat && matchEst;
-  });
-  renderCatalogo(res);
+  renderCatalogo(produtos.filter(p=>[p.nome,p.embalagem,p.diluicao,p.aplicacao].some(v=>v&&v.toLowerCase().includes(q))));
 };
 
 window.filtrarLista = () => {
   const q = document.getElementById('listaSearch').value.toLowerCase();
-  const res = todosOsProdutos.filter(p => [p.nome,p.codigo,p.categoria].some(v=>v&&v.toLowerCase().includes(q)));
-  renderTabela(res);
+  renderTabela(produtos.filter(p=>[p.nome,p.embalagem,p.diluicao,p.aplicacao].some(v=>v&&v.toLowerCase().includes(q))));
 };
 
-// ──────────────────────── BADGE ESTOQUE ────────────────────────
-function badgeEstoque(p){
-  if(p.statusEstoque==='esgotado'||p.estoque===0) return {badge:`<span class="badge badge-red">Esgotado</span>`,cls:'red'};
-  if(p.statusEstoque==='baixo') return {badge:`<span class="badge badge-warn">Estoque Baixo</span>`,cls:'warn'};
-  return {badge:`<span class="badge badge-green">Disponível</span>`,cls:'green'};
-}
-
-// ──────────────────────── VER FICHA ────────────────────────
 window.verProduto = (id) => {
-  const p = todosOsProdutos.find(x=>x.id===id);
-  if(!p) return;
+  const p = produtos.find(x=>x.id===id); if(!p) return;
   document.getElementById('modalTitle').textContent = p.nome;
-
-  const row = (k,v) => v ? `<div class="ficha-row"><span class="ficha-key">${k}</span><span class="ficha-val">${v}</span></div>` : '';
-  const section = (t, rows) => rows ? `<div class="ficha-section"><div class="ficha-title">${t}</div>${rows}</div>` : '';
-
-  document.getElementById('modalBody').innerHTML = `
-    <div style="margin-bottom:12px">${badgeEstoque(p).badge} ${p.categoria?`<span class="badge badge-blue">${p.categoria}</span>`:''} ${p.pureza?`<span class="badge badge-gray">${p.pureza}</span>`:''}</div>
-    ${p.descricao?`<p style="font-size:.85rem;color:var(--muted);margin-bottom:12px;line-height:1.6">${p.descricao}</p>`:''}
-    ${section('Identificação',
-      row('Código',p.codigo) + row('Nº CAS',p.cas) + row('Fórmula',p.formula)
-    )}
-    ${section('Dados Físico-Químicos',
-      row('Estado Físico',p.estado) + row('Concentração',p.concentracao) + row('Densidade',p.densidade?p.densidade+' g/mL':'') + row('pH',p.ph) + row('P. Ebulição',p.ebulicao?p.ebulicao+' °C':'') + row('P. Fusão',p.fusao?p.fusao+' °C':'')
-    )}
-    ${section('Segurança',
-      row('Classe de Risco',p.risco) + row('Nº ONU',p.onu) + row('Frases H/P',p.seguranca)
-    )}
-    ${section('Comercial e Estoque',
-      row('Preço',p.preco>0?`R$ ${p.preco.toFixed(2).replace('.',',')}`:'')+row('Embalagem',p.embalagem+(p.tipoEmbalagem?' — '+p.tipoEmbalagem:''))+row('Estoque Atual',p.estoque>=0?p.estoque+' unidades':'')+row('Estoque Mínimo',p.estoqueMin>0?p.estoqueMin+' unidades':'')+row('Fornecedor',p.fornecedor)+row('Armazenamento',p.armazenamento)+row('Validade',p.validade)
-    )}
-    ${p.obs?section('Observações',`<p style="font-size:.83rem;line-height:1.6;color:var(--muted);padding:6px 0">${p.obs}</p>`):''}
-    <div style="font-size:.75rem;color:var(--muted);margin-top:14px;text-align:right">Cadastrado em: ${p.createdAt?new Date(p.createdAt).toLocaleDateString('pt-BR'):'-'}</div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-primary" onclick="editarProduto('${p.id}');fecharModal()">✏️ Editar Produto</button>
-      <button class="btn btn-outline" onclick="fecharModal()">Fechar</button>
-    </div>
-  `;
+  const row = (k,v) => v ? `<div class="ficha-row"><div class="ficha-key">${k}</div><div class="ficha-val">${v}</div></div>` : '';
+  document.getElementById('modalBody').innerHTML =
+    row('Embalagem', p.embalagem) +
+    row('Diluição', p.diluicao) +
+    row('Aplicação', p.aplicacao) +
+    `<div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}');fecharModal()">✏️ Editar</button>
+      <button class="btn btn-outline btn-sm" onclick="fecharModal()">Fechar</button>
+    </div>`;
   document.getElementById('modalProd').classList.add('open');
 };
 
 window.fecharModal = () => document.getElementById('modalProd').classList.remove('open');
-document.getElementById('modalProd').addEventListener('click', e => { if(e.target===e.currentTarget) fecharModal(); });
+document.getElementById('modalProd').addEventListener('click', e=>{ if(e.target===e.currentTarget) fecharModal(); });
 
-// ──────────────────────── EDITAR ────────────────────────
 window.editarProduto = (id) => {
-  const p = todosOsProdutos.find(x=>x.id===id);
-  if(!p) return;
+  const p = produtos.find(x=>x.id===id); if(!p) return;
   editandoId = id;
-  const campos = ['nome','codigo','cas','formula','categoria','pureza','descricao','estado','concentracao','densidade','ph','ebulicao','fusao','risco','onu','seguranca','embalagem','tipoEmbalagem','estoque','estoqueMin','preco','fornecedor','armazenamento','validade','obs'];
-  campos.forEach(c => {
-    const el = document.getElementById('f_'+c);
-    if(el && p[c]!==undefined) el.value = p[c];
-  });
-  document.getElementById('btnSalvar').innerHTML = '💾 Atualizar Produto';
+  document.getElementById('f_nome').value      = p.nome||'';
+  document.getElementById('f_embalagem').value = p.embalagem||'';
+  document.getElementById('f_diluicao').value  = p.diluicao||'';
+  document.getElementById('f_aplicacao').value = p.aplicacao||'';
+  document.getElementById('btnSalvar').textContent = '💾 Atualizar Produto';
   showPage('cadastro', document.querySelectorAll('.nav-btn')[1]);
   window.scrollTo({top:0,behavior:'smooth'});
-  showToast('Editando: '+p.nome);
 };
 
-// ──────────────────────── DELETAR ────────────────────────
 window.deletarProduto = async (id, nome) => {
-  if(!confirm(`Excluir "${nome}"? Esta ação não pode ser desfeita.`)) return;
-  try {
-    await deleteDoc(doc(db,'produtos',id));
-    showToast('Produto excluído');
-    await carregarProdutos();
-  } catch(e) {
-    showToast('Erro ao excluir: '+e.message,'error');
-  }
+  if(!confirm(`Excluir "${nome}"?`)) return;
+  try { await deleteDoc(doc(db,'produtos',id)); showToast('Produto excluído'); await carregar(); }
+  catch(e){ showToast('Erro: '+e.message,'error'); }
 };
 
-// ──────────────────────── LIMPAR FORM ────────────────────────
 window.limparForm = () => {
-  document.querySelectorAll('#page-cadastro input, #page-cadastro textarea, #page-cadastro select').forEach(el=>el.value='');
+  ['f_nome','f_embalagem','f_diluicao','f_aplicacao'].forEach(id=>document.getElementById(id).value='');
   editandoId = null;
-  document.getElementById('btnSalvar').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Produto';
+  document.getElementById('btnSalvar').textContent = '💾 Salvar Produto';
 };
 
-// ──────────────────────── NAVEGAÇÃO ────────────────────────
 window.showPage = (nome, btn) => {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+nome).classList.add('active');
@@ -715,8 +348,7 @@ window.showPage = (nome, btn) => {
   if(btn) btn.classList.add('active');
 };
 
-// INIT
-carregarProdutos();
+carregar();
 </script>
 </body>
 </html>
