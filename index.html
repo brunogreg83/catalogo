@@ -447,12 +447,12 @@ async function salvarProduto(){
   const mp={"fEmbalagem":"Embalagem","fDiluicao":"Diluição","fAplicacao":"Aplicação","fDescricao":"Descrição"};
   Object.entries(mp).forEach(([fid,label])=>{
     const v=document.getElementById(fid).value.trim();
-    if(v) attrs.push([label,v]);
+    if(v) attrs.push({l:label,v});
   });
   camposExtra.forEach(id=>{
     const l=document.getElementById(id+"_l")?.value.trim();
     const v=document.getElementById(id+"_v")?.value.trim();
-    if(l&&v) attrs.push([l,v]);
+    if(l&&v) attrs.push({l,v});
   });
 
   const btn=document.getElementById("btnAdd");
@@ -504,7 +504,7 @@ function editarProduto(id){
 
   const mp={"Embalagem":"fEmbalagem","Diluição":"fDiluicao","Aplicação":"fAplicacao","Descrição":"fDescricao"};
   const known=Object.keys(mp);
-  (p.attrs||[]).forEach(([l,v])=>{
+  (p.attrs||[]).forEach(({l,v})=>{
     if(known.includes(l)){ document.getElementById(mp[l]).value=v; }
     else {
       addCampoExtra();
@@ -559,7 +559,7 @@ window.renderLista = function(){
           <div class="product-card-body">
             <div class="product-card-name">${p.nome}</div>
             ${(p.attrs||[]).length?`<div class="product-attrs">
-              ${(p.attrs||[]).map(([l,v])=>`
+              ${(p.attrs||[]).map(({l,v})=>`
                 <span class="attr-label">${l}</span>
                 <span class="attr-value">${v}</span>
               `).join("")}
@@ -754,7 +754,7 @@ async function gerarPDF(){
         doc.line(MG+7,cy+9.5,MG+CW-4,cy+9.5);
 
         let ay=cy+9.5+5;
-        (p.attrs||[]).forEach(([label,value])=>{
+        (p.attrs||[]).forEach(({l:label,v:value})=>{
           doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.setTextColor(...BLUE);
           doc.text((label+":").toUpperCase(),MG+7,ay,{charSpace:.5});
           doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...TEXT);
