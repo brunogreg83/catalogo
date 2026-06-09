@@ -30,7 +30,7 @@ button{background:var(--a);color:#fff;border:none;padding:10px 14px;border-radiu
 <input id="nome" placeholder="Nome">
 <input id="codigo" placeholder="Código">
 <textarea id="descricao" placeholder="Descrição"></textarea>
-<button onclick="salvarProduto()">Salvar Produto</button>
+<button id="btnSalvar">Salvar Produto</button>
 </div>
 
 <div class="card">
@@ -65,7 +65,16 @@ window.salvarProduto = async function(){
       descricao: document.getElementById('descricao').value,
       createdAt: new Date().toISOString()
     });
-    await carregarProdutos();
+    await 
+document.getElementById('btnSalvar').addEventListener('click', async () => {
+  try{
+    await window.salvarProduto();
+  }catch(err){
+    alert('Erro ao salvar: ' + (err.message || err));
+  }
+});
+
+carregarProdutos();
     alert('Produto salvo');
   }catch(e){ alert(e.message); }
 }
@@ -77,6 +86,15 @@ async function carregarProdutos(){
     return `<div class="item"><strong>${p.nome||''}</strong><br>${p.codigo||''}<br>${p.descricao||''}</div>`;
   }).join('') || 'Nenhum produto cadastrado';
 }
+
+
+document.getElementById('btnSalvar').addEventListener('click', async () => {
+  try{
+    await window.salvarProduto();
+  }catch(err){
+    alert('Erro ao salvar: ' + (err.message || err));
+  }
+});
 
 carregarProdutos();
 </script>
