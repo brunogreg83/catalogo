@@ -273,8 +273,13 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="form-group">
           <label>Categoria *</label>
-          <input type="text" id="fCategoria" placeholder="Ex: Geral, Higienização…" list="catList" oninput="validarForm()"/>
-          <datalist id="catList"></datalist>
+          <select id="fCategoria" onchange="validarForm()">
+            <option value="" disabled selected>Selecione uma categoria…</option>
+            <option value="Piso">Piso</option>
+            <option value="Cozinha">Cozinha</option>
+            <option value="Lavanderia">Lavanderia</option>
+            <option value="Institucional">Institucional</option>
+          </select>
         </div>
       </div>
       <div class="form-row">
@@ -392,8 +397,9 @@ function validarForm(){
 }
 
 function limparForm(){
-  ["fId","fNome","fCategoria","fEmbalagem","fDiluicao","fAplicacao","fDescricao"]
+  ["fId","fNome","fEmbalagem","fDiluicao","fAplicacao","fDescricao"]
     .forEach(id=>{ document.getElementById(id).value=""; });
+  document.getElementById("fCategoria").value="";
   document.getElementById("extraFields").innerHTML="";
   camposExtra=[];
   editandoId=null;
@@ -578,8 +584,7 @@ window.updateSidebar = function(){
   document.getElementById("btnGerar").disabled=!ok;
   document.getElementById("btnNavGerar").disabled=!ok;
 
-  // datalist
-  document.getElementById("catList").innerHTML=cats.map(c=>`<option value="${c}"/>`).join("");
+  // categoria fixa — sem datalist
 
   // cat card
   if(cats.length){
