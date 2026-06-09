@@ -175,10 +175,14 @@ document.addEventListener("DOMContentLoaded", () => {
   .img-remove:hover{transform:scale(1.15)}
 
   /* product card image */
+  .prod-img-wrap{
+    background:var(--off-white);border-bottom:1.5px solid var(--gray);
+    display:flex;align-items:center;justify-content:center;
+    padding:10px;min-height:100px;max-height:160px;overflow:hidden;
+  }
   .prod-img{
-    width:100%;max-height:120px;object-fit:contain;
-    border-radius:0 0 0 0;border-bottom:1px solid var(--gray);
-    background:var(--off-white);display:block;padding:8px 0;
+    max-width:100%;max-height:140px;width:auto;height:auto;
+    object-fit:contain;display:block;border-radius:6px;
   }
 
   .btn-secondary{background:var(--off-white);color:var(--text-muted);
@@ -678,7 +682,7 @@ window.renderLista = function(){
               <button onclick="removerProduto('${p.id}')">🗑 Remover</button>
             </div>
           </div>
-          ${p.imagem?`<img class="prod-img" src="${p.imagem}" alt="${p.nome}"/>`:""}
+          ${p.imagem?`<div class="prod-img-wrap"><img class="prod-img" src="${p.imagem}" alt="${p.nome}"/></div>`:""}
           <div class="product-card-body">
             <div class="product-card-name">${p.nome}</div>
             ${(p.attrs||[]).length?`<div class="product-attrs">
@@ -875,17 +879,28 @@ async function gerarPDF(){
           doc.rect(MG,cy+i*(ch/8),2.2,ch/8+.5,"F");
         }
 
-        // image (right side)
+        // image (right side) — preserveAspectRatio via contain fit
         const textX = MG+7;
         const textW = hasImg ? CW - IMG_W - IMG_PAD*3 - 2 : CW - 10;
         if(hasImg){
           try{
-            // image area background
             const imgX = MG+CW-IMG_W-IMG_PAD;
             const imgY = cy+IMG_PAD;
+            // measure natural dimensions via canvas for correct aspect ratio
+            const naturalSize = await new Promise(res=>{
+              const im=new Image();
+              im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight});
+              im.onerror=()=>res({w:1,h:1});
+              im.src=p.imagem;
+            });
+            const ratio=naturalSize.w/naturalSize.h;
+            let dw=IMG_W, dh=IMG_W/ratio;
+            if(dh>IMG_H){ dh=IMG_H; dw=IMG_H*ratio; }
+            const dx=imgX+(IMG_W-dw)/2;
+            const dy=imgY+(IMG_H-dh)/2;
             doc.setFillColor(...BLUE_PALE);
             doc.roundedRect(imgX-2, imgY-2, IMG_W+4, IMG_H+4, 2,2,"F");
-            doc.addImage(p.imagem, imgX, imgY, IMG_W, IMG_H, undefined, "FAST", 0);
+            doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
           } catch(imgErr){ console.warn("Img error",imgErr); }
         }
 
