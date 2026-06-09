@@ -26,11 +26,6 @@ button{background:var(--a);color:#fff;border:none;padding:10px 14px;border-radiu
 <div class="container">
 <div class="grid">
 <div class="card">
-<h3>Login</h3>
-<input id="email" placeholder="Email">
-<input id="senha" type="password" placeholder="Senha">
-<button onclick="login()">Entrar</button>
-
 <h3>Produto</h3>
 <input id="nome" placeholder="Nome">
 <input id="codigo" placeholder="Código">
@@ -47,7 +42,6 @@ button{background:var(--a);color:#fff;border:none;padding:10px 14px;border-radiu
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -61,18 +55,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
-
-window.login = async function(){
-  try{
-    await signInWithEmailAndPassword(auth,
-      document.getElementById('email').value,
-      document.getElementById('senha').value
-    );
-    alert('Login realizado');
-  }catch(e){ alert(e.message); }
-}
 
 window.salvarProduto = async function(){
   try{
