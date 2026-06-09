@@ -4,94 +4,185 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AB Chemicals — Catálogo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--p:#00337A;--a:#0072CE;--light:#e8f0fb;--success:#1a7a4a;--danger:#c0392b;--gray:#f5f7fa;--border:#dde3ed;--text:#1a1f2e;--muted:#6b7280;}
+:root{
+  --p:#00337A;--a:#0072CE;--light:#e8f0fb;
+  --success:#1a7a4a;--danger:#c0392b;
+  --gray:#f0f4f9;--border:#dde3ed;
+  --text:#1a1f2e;--muted:#6b7280;
+  --cat-piso:#16a34a;--cat-piso-bg:#dcfce7;
+  --cat-coz:#ea580c;--cat-coz-bg:#ffedd5;
+  --cat-lav:#2563eb;--cat-lav-bg:#dbeafe;
+  --cat-ins:#7c3aed;--cat-ins-bg:#ede9fe;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:var(--gray);color:var(--text);font-size:15px}
+body{font-family:'Inter',sans-serif;background:var(--gray);color:var(--text);font-size:15px}
 
-header{background:linear-gradient(135deg,var(--p),var(--a));color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,51,122,.25)}
-header h1{font-size:1.3rem;font-weight:700}
-header p{font-size:.8rem;opacity:.8;margin-top:2px}
+/* HEADER */
+header{background:linear-gradient(135deg,#001f4d 0%,#0072CE 100%);color:#fff;padding:0 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,31,77,.35);height:64px}
+.logo-wrap{display:flex;align-items:center;gap:12px}
+.logo-icon{width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center}
+header h1{font-size:1.15rem;font-weight:800;letter-spacing:.3px}
+header p{font-size:.72rem;opacity:.7;margin-top:1px}
+.header-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn-pdf-header{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+.btn-pdf-header:hover{background:rgba(255,255,255,.25)}
 
+/* NAV */
 nav{background:#fff;border-bottom:1px solid var(--border);display:flex}
-.nav-btn{padding:12px 22px;border:none;background:none;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;transition:.2s}
-.nav-btn.active{color:var(--a);border-bottom-color:var(--a)}
+.nav-btn{padding:13px 22px;border:none;background:none;cursor:pointer;font-size:.83rem;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;transition:.2s;white-space:nowrap}
+.nav-btn.active{color:var(--a);border-bottom-color:var(--a);font-weight:600}
 
-.container{max-width:960px;margin:auto;padding:28px 20px}
+.container{max-width:1100px;margin:auto;padding:28px 20px}
 .page{display:none}.page.active{display:block}
 
-.card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:16px}
-.card-title{font-size:1rem;font-weight:600;color:var(--p);margin-bottom:20px}
+/* SEARCH BAR */
+.search-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:200px}
+.search-bar select{min-width:190px}
 
-.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
-label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-input,textarea{border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;font-size:.92rem;font-family:inherit;transition:.2s;background:#fff;color:var(--text);width:100%}
-input:focus,textarea:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(0,114,206,.12)}
+/* CATEGORY TABS */
+.cat-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.cat-tab{padding:7px 18px;border-radius:30px;font-size:.82rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:.2s}
+.cat-tab.all{background:#e8f0fb;color:var(--p);border-color:transparent}
+.cat-tab.all.active{background:var(--p);color:#fff}
+.cat-tab.piso{background:var(--cat-piso-bg);color:var(--cat-piso)}
+.cat-tab.piso.active{background:var(--cat-piso);color:#fff}
+.cat-tab.cozinha{background:var(--cat-coz-bg);color:var(--cat-coz)}
+.cat-tab.cozinha.active{background:var(--cat-coz);color:#fff}
+.cat-tab.lavanderia{background:var(--cat-lav-bg);color:var(--cat-lav)}
+.cat-tab.lavanderia.active{background:var(--cat-lav);color:#fff}
+.cat-tab.institucional{background:var(--cat-ins-bg);color:var(--cat-ins)}
+.cat-tab.institucional.active{background:var(--cat-ins);color:#fff}
+
+/* PRODUCT CARDS */
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+
+.product-card{background:#fff;border-radius:16px;overflow:hidden;transition:.22s;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.product-card:hover{box-shadow:0 8px 28px rgba(0,51,122,.14);transform:translateY(-3px)}
+
+.product-header{height:120px;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;position:relative;overflow:hidden}
+.product-header::before{content:'';position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;opacity:.15;background:#fff}
+.product-header::after{content:'';position:absolute;right:20px;bottom:-30px;width:70px;height:70px;border-radius:50%;opacity:.1;background:#fff}
+.ph-piso{background:linear-gradient(135deg,#15803d,#22c55e)}
+.ph-cozinha{background:linear-gradient(135deg,#c2410c,#f97316)}
+.ph-lavanderia{background:linear-gradient(135deg,#1d4ed8,#3b82f6)}
+.ph-institucional{background:linear-gradient(135deg,#6d28d9,#a855f7)}
+.ph-default{background:linear-gradient(135deg,#0369a1,#0ea5e9)}
+
+.product-icon{font-size:2.4rem;z-index:1}
+.product-cat-label{font-size:.7rem;font-weight:700;color:rgba(255,255,255,.9);background:rgba(0,0,0,.2);padding:3px 10px;border-radius:20px;z-index:1;text-transform:uppercase;letter-spacing:.8px}
+
+.product-body{padding:16px 20px;flex:1;display:flex;flex-direction:column;gap:0}
+.product-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:12px;line-height:1.3}
+
+.info-chip{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #f1f5f9}
+.info-chip:last-of-type{border:none}
+.chip-icon{font-size:.9rem;margin-top:1px;flex-shrink:0}
+.chip-content{}
+.chip-label{font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block}
+.chip-val{font-size:.83rem;color:var(--text);line-height:1.45;display:block}
+
+.product-footer{padding:12px 20px;border-top:1px solid #f1f5f9;display:flex;gap:8px;background:#fafbfd}
+
+/* FORM */
+.card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:26px;margin-bottom:16px}
+.card-title{font-size:1rem;font-weight:700;color:var(--p);margin-bottom:22px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+label{font-size:.73rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+input,textarea,select{border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:.92rem;font-family:'Inter',sans-serif;transition:.2s;background:#fff;color:var(--text);width:100%}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(0,114,206,.12)}
 textarea{resize:vertical;min-height:90px}
 
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-size:.88rem;font-weight:600;cursor:pointer;transition:.18s;border:1.5px solid transparent}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:9px;font-size:.86rem;font-weight:600;cursor:pointer;transition:.18s;border:1.5px solid transparent;font-family:'Inter',sans-serif}
 .btn-primary{background:var(--a);color:#fff;border-color:var(--a)}
 .btn-primary:hover{background:#005fa8}
 .btn-outline{background:#fff;color:var(--a);border-color:var(--a)}
 .btn-outline:hover{background:var(--light)}
 .btn-danger{background:#fff;color:var(--danger);border-color:var(--danger)}
 .btn-danger:hover{background:#fde8e8}
-.btn-sm{padding:5px 11px;font-size:.78rem}
+.btn-sm{padding:6px 12px;font-size:.78rem}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-pdf{background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;border:none;padding:10px 20px;border-radius:9px;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.2s;font-family:'Inter',sans-serif}
+.btn-pdf:hover{filter:brightness(1.08)}
 
-.search-bar{display:flex;gap:10px;margin-bottom:20px}
-.search-bar input{flex:1}
-
-.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-.product-card{background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;transition:.2s;display:flex;flex-direction:column}
-.product-card:hover{box-shadow:0 4px 16px rgba(0,51,122,.12);transform:translateY(-2px)}
-.product-img{height:110px;background:linear-gradient(135deg,var(--light),#c8ddf5);display:flex;align-items:center;justify-content:center;font-size:2.6rem}
-.product-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:5px}
-.product-name{font-size:.97rem;font-weight:700}
-.meta-row{font-size:.8rem;color:var(--muted);line-height:1.5}
-.meta-label{font-weight:600;color:var(--p)}
-.product-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;background:#fafbfc}
-
+/* TABLE */
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.85rem}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
 thead th{background:var(--light);color:var(--p);font-weight:600;padding:10px 12px;text-align:left;border-bottom:2px solid var(--border)}
 tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
 tbody tr:hover{background:#f9fbff}
 
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;padding:26px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.modal-header h3{font-size:1.05rem;font-weight:700;color:var(--p)}
-
-.ficha-row{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-bottom:1px solid var(--border)}
+.modal{background:#fff;border-radius:16px;padding:0;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.25)}
+.modal-hero{height:140px;display:flex;align-items:flex-end;padding:20px;position:relative}
+.modal-hero-icon{font-size:3rem;position:absolute;top:50%;left:50%;transform:translate(-50%,-60%)}
+.modal-body-pad{padding:22px 24px}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.modal-header h3{font-size:1.1rem;font-weight:700;color:var(--text)}
+.ficha-row{padding:10px 0;border-bottom:1px solid #f1f5f9}
 .ficha-row:last-child{border:none}
-.ficha-key{font-size:.73rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.ficha-key{font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
 .ficha-val{font-size:.88rem;color:var(--text);line-height:1.55}
 
-.toast{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:10px;color:#fff;font-weight:600;font-size:.85rem;z-index:300;opacity:0;transition:.3s;pointer-events:none}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:13px 20px;border-radius:12px;color:#fff;font-weight:600;font-size:.84rem;z-index:300;opacity:0;transition:.3s;pointer-events:none;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
 .toast.show{opacity:1}
-.toast.success{background:var(--success)}
+.toast.success{background:#15803d}
 .toast.error{background:var(--danger)}
 
-.loader{display:flex;align-items:center;justify-content:center;padding:50px;gap:10px;color:var(--muted)}
-.spinner{width:22px;height:22px;border:3px solid var(--light);border-top-color:var(--a);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+/* LOADER */
+.loader{display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--muted)}
+.spinner{width:24px;height:24px;border:3px solid var(--light);border-top-color:var(--a);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-.empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:.9rem}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:3rem;margin-bottom:12px}
 
-@media(max-width:600px){nav{overflow-x:auto}.nav-btn{white-space:nowrap}}
+/* PDF MODAL */
+.pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center}
+.pdf-overlay.open{display:flex}
+.pdf-box{background:#fff;border-radius:16px;padding:28px;width:90%;max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.pdf-box h3{font-size:1.05rem;font-weight:700;color:var(--p);margin-bottom:6px}
+.pdf-box p{font-size:.85rem;color:var(--muted);margin-bottom:20px}
+.pdf-options{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.pdf-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s}
+.pdf-opt:hover{border-color:var(--a);background:var(--light)}
+.pdf-opt.selected{border-color:var(--a);background:var(--light)}
+.pdf-opt input{width:auto;margin:0}
+
+/* BADGE CAT */
+.badge-cat{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:600}
+.cat-piso{background:var(--cat-piso-bg);color:var(--cat-piso)}
+.cat-cozinha{background:var(--cat-coz-bg);color:var(--cat-coz)}
+.cat-lavanderia{background:var(--cat-lav-bg);color:var(--cat-lav)}
+.cat-institucional{background:var(--cat-ins-bg);color:var(--cat-ins)}
+
+@media(max-width:600px){nav{overflow-x:auto}.catalog-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
 <header>
-  <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
-    <rect width="34" height="34" rx="8" fill="rgba(255,255,255,.15)"/>
-    <path d="M9 25 L17 9 L25 25 M12.5 19 h9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <div>
-    <h1>AB Chemicals</h1>
-    <p>Catálogo de Produtos</p>
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+      </svg>
+    </div>
+    <div>
+      <h1>AB Chemicals</h1>
+      <p>Linha Profissional de Produtos</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn-pdf-header" onclick="abrirPdfModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Gerar Catálogo PDF
+    </button>
   </div>
 </header>
 
@@ -107,9 +198,23 @@ tbody tr:hover{background:#f9fbff}
   <div id="page-catalogo" class="page active">
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="🔍  Buscar produto..." oninput="filtrarProdutos()">
+      <select id="filterCat" onchange="filtrarProdutos()">
+        <option value="">Todas as categorias</option>
+        <option value="Piso">Piso</option>
+        <option value="Cozinha">Cozinha</option>
+        <option value="Lavanderia">Lavanderia</option>
+        <option value="Institucional">Institucional</option>
+      </select>
+    </div>
+    <div class="cat-tabs">
+      <button class="cat-tab all active" onclick="setTab('',this)">Todos</button>
+      <button class="cat-tab piso" onclick="setTab('Piso',this)">🟢 Piso</button>
+      <button class="cat-tab cozinha" onclick="setTab('Cozinha',this)">🟠 Cozinha</button>
+      <button class="cat-tab lavanderia" onclick="setTab('Lavanderia',this)">🔵 Lavanderia</button>
+      <button class="cat-tab institucional" onclick="setTab('Institucional',this)">🟣 Institucional</button>
     </div>
     <div id="catalogoGrid" class="catalog-grid">
-      <div class="loader"><div class="spinner"></div> Carregando...</div>
+      <div class="loader"><div class="spinner"></div> Carregando produtos...</div>
     </div>
   </div>
 
@@ -117,25 +222,21 @@ tbody tr:hover{background:#f9fbff}
   <div id="page-cadastro" class="page">
     <div class="card">
       <div class="card-title">Cadastrar Produto</div>
-
+      <div class="field"><label>Produto *</label><input id="f_nome" placeholder="Nome do produto"></div>
       <div class="field">
-        <label>Produto *</label>
-        <input id="f_nome" placeholder="Nome do produto">
+        <label>Categoria</label>
+        <select id="f_categoria">
+          <option value="">Selecione...</option>
+          <option value="Piso">Piso</option>
+          <option value="Cozinha">Cozinha</option>
+          <option value="Lavanderia">Lavanderia</option>
+          <option value="Institucional">Institucional</option>
+        </select>
       </div>
-      <div class="field">
-        <label>Embalagem</label>
-        <input id="f_embalagem" placeholder="Ex: Frasco 1L, Galão 5L, Saco 25kg...">
-      </div>
-      <div class="field">
-        <label>Diluição</label>
-        <input id="f_diluicao" placeholder="Ex: 1:10 em água, 5%, Concentrado puro...">
-      </div>
-      <div class="field">
-        <label>Aplicação</label>
-        <textarea id="f_aplicacao" placeholder="Descreva as aplicações e usos do produto..."></textarea>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">
+      <div class="field"><label>Embalagem</label><input id="f_embalagem" placeholder="Ex: Frasco 1L, Galão 5L, Saco 25kg..."></div>
+      <div class="field"><label>Diluição</label><input id="f_diluicao" placeholder="Ex: 1:10 em água, 5%, Concentrado puro..."></div>
+      <div class="field"><label>Aplicação</label><textarea id="f_aplicacao" placeholder="Descreva as aplicações e usos do produto..."></textarea></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-primary" id="btnSalvar" onclick="salvarProduto()">💾 Salvar Produto</button>
         <button class="btn btn-outline" onclick="limparForm()">Limpar</button>
       </div>
@@ -147,22 +248,21 @@ tbody tr:hover{background:#f9fbff}
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <div class="card-title" style="margin:0">📋 Todos os Produtos</div>
-        <input type="text" id="listaSearch" placeholder="🔍 Filtrar..." oninput="filtrarLista()" style="width:220px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="listaSearch" placeholder="🔍 Buscar..." oninput="filtrarLista()" style="width:170px">
+          <select id="listaFilterCat" onchange="filtrarLista()" style="width:170px">
+            <option value="">Todas as categorias</option>
+            <option value="Piso">Piso</option>
+            <option value="Cozinha">Cozinha</option>
+            <option value="Lavanderia">Lavanderia</option>
+            <option value="Institucional">Institucional</option>
+          </select>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Embalagem</th>
-              <th>Diluição</th>
-              <th>Aplicação</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaBody">
-            <tr><td colspan="5" style="text-align:center;padding:30px"><div class="spinner" style="margin:auto"></div></td></tr>
-          </tbody>
+          <thead><tr><th>Produto</th><th>Categoria</th><th>Embalagem</th><th>Diluição</th><th>Aplicação</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaBody"><tr><td colspan="6" style="text-align:center;padding:30px"><div class="spinner" style="margin:auto"></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -170,19 +270,57 @@ tbody tr:hover{background:#f9fbff}
 
 </div>
 
-<!-- MODAL -->
+<!-- MODAL PRODUTO -->
 <div class="modal-overlay" id="modalProd">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="modalTitle">Ficha do Produto</h3>
-      <button class="btn btn-sm btn-outline" onclick="fecharModal()">✕</button>
+    <div class="modal-hero" id="modalHero">
+      <div class="modal-hero-icon" id="modalIcon">🧪</div>
     </div>
-    <div id="modalBody"></div>
+    <div class="modal-body-pad">
+      <div class="modal-header">
+        <h3 id="modalTitle">Produto</h3>
+        <button class="btn btn-sm btn-outline" onclick="fecharModal()">✕</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF MODAL -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-box">
+    <h3>📄 Gerar Catálogo PDF</h3>
+    <p>Escolha quais categorias incluir no catálogo para o cliente:</p>
+    <div class="pdf-options">
+      <label class="pdf-opt selected" id="opt-todos">
+        <input type="radio" name="pdfcat" value="todos" checked onchange="selecionarOpt(this)"> 📦 Catálogo completo (todos os produtos)
+      </label>
+      <label class="pdf-opt" id="opt-Piso">
+        <input type="radio" name="pdfcat" value="Piso" onchange="selecionarOpt(this)"> 🟢 Somente Piso
+      </label>
+      <label class="pdf-opt" id="opt-Cozinha">
+        <input type="radio" name="pdfcat" value="Cozinha" onchange="selecionarOpt(this)"> 🟠 Somente Cozinha
+      </label>
+      <label class="pdf-opt" id="opt-Lavanderia">
+        <input type="radio" name="pdfcat" value="Lavanderia" onchange="selecionarOpt(this)"> 🔵 Somente Lavanderia
+      </label>
+      <label class="pdf-opt" id="opt-Institucional">
+        <input type="radio" name="pdfcat" value="Institucional" onchange="selecionarOpt(this)"> 🟣 Somente Institucional
+      </label>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-pdf" onclick="gerarPDF()" id="btnGerarPdf">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar PDF
+      </button>
+      <button class="btn btn-outline" onclick="fecharPdfModal()">Cancelar</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy }
@@ -201,151 +339,377 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 let produtos = [];
 let editandoId = null;
+let tabAtiva = '';
 
-window.showToast = (msg, tipo='success') => {
-  const t = document.getElementById('toast');
-  t.className = `toast ${tipo} show`;
-  t.textContent = (tipo==='success'?'✓ ':'✕ ') + msg;
-  setTimeout(()=>t.className='toast', 3000);
+// ── helpers ──
+const CAT_COLORS = {
+  Piso:         {bg:'#15803d',light:'#dcfce7',text:'#14532d',icon:'🧹'},
+  Cozinha:      {bg:'#c2410c',light:'#ffedd5',text:'#7c2d12',icon:'🍳'},
+  Lavanderia:   {bg:'#1d4ed8',light:'#dbeafe',text:'#1e3a8a',icon:'👕'},
+  Institucional:{bg:'#6d28d9',light:'#ede9fe',text:'#3b0764',icon:'🏢'},
+};
+const catColor = cat => CAT_COLORS[cat] || {bg:'#0369a1',light:'#e0f2fe',text:'#0c4a6e',icon:'🧪'};
+
+function catBadge(cat){
+  if(!cat) return '';
+  const k = {Piso:'piso',Cozinha:'cozinha',Lavanderia:'lavanderia',Institucional:'institucional'}[cat]||'';
+  return `<span class="badge-cat cat-${k}">${cat}</span>`;
+}
+
+window.showToast = (msg,tipo='success')=>{
+  const t=document.getElementById('toast');
+  t.className=`toast ${tipo} show`;
+  t.innerHTML=(tipo==='success'?'✓ ':'✕ ')+msg;
+  setTimeout(()=>t.className='toast',3000);
 };
 
-window.salvarProduto = async () => {
-  const nome = document.getElementById('f_nome').value.trim();
-  if(!nome){ showToast('Informe o nome do produto','error'); return; }
-  const btn = document.getElementById('btnSalvar');
-  btn.disabled = true; btn.textContent = 'Salvando...';
-
-  const dados = {
+// ── SALVAR ──
+window.salvarProduto = async()=>{
+  const nome=document.getElementById('f_nome').value.trim();
+  if(!nome){showToast('Informe o nome do produto','error');return;}
+  const btn=document.getElementById('btnSalvar');
+  btn.disabled=true;btn.textContent='Salvando...';
+  const dados={
     nome,
-    embalagem: document.getElementById('f_embalagem').value.trim(),
-    diluicao:  document.getElementById('f_diluicao').value.trim(),
-    aplicacao: document.getElementById('f_aplicacao').value.trim(),
+    categoria:document.getElementById('f_categoria').value,
+    embalagem:document.getElementById('f_embalagem').value.trim(),
+    diluicao:document.getElementById('f_diluicao').value.trim(),
+    aplicacao:document.getElementById('f_aplicacao').value.trim(),
   };
-
-  try {
+  try{
     if(editandoId){
-      await updateDoc(doc(db,'produtos',editandoId), dados);
-      showToast('Produto atualizado!');
-      editandoId = null;
-    } else {
-      dados.createdAt = new Date().toISOString();
-      await addDoc(collection(db,'produtos'), dados);
+      await updateDoc(doc(db,'produtos',editandoId),dados);
+      showToast('Produto atualizado!'); editandoId=null;
+    }else{
+      dados.createdAt=new Date().toISOString();
+      await addDoc(collection(db,'produtos'),dados);
       showToast('Produto cadastrado!');
     }
-    limparForm();
-    await carregar();
-    showPage('catalogo', document.querySelector('.nav-btn'));
-  } catch(e){ showToast('Erro: '+e.message,'error'); }
-
-  btn.disabled = false; btn.textContent = '💾 Salvar Produto';
+    limparForm(); await carregar();
+    showPage('catalogo',document.querySelector('.nav-btn'));
+  }catch(e){showToast('Erro: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='💾 Salvar Produto';
 };
 
+// ── CARREGAR ──
 async function carregar(){
-  try {
-    const snap = await getDocs(query(collection(db,'produtos'), orderBy('createdAt','desc')));
-    produtos = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderCatalogo(produtos);
-    renderTabela(produtos);
-  } catch(e){
-    document.getElementById('catalogoGrid').innerHTML = `<div class="empty">Erro ao carregar: ${e.message}</div>`;
+  try{
+    const snap=await getDocs(query(collection(db,'produtos'),orderBy('createdAt','desc')));
+    produtos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    aplicarFiltros(); renderTabela(produtos);
+  }catch(e){
+    document.getElementById('catalogoGrid').innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><p>Erro: ${e.message}</p></div>`;
   }
 }
 
+// ── RENDER CATÁLOGO ──
 function renderCatalogo(lista){
-  const g = document.getElementById('catalogoGrid');
-  if(!lista.length){ g.innerHTML='<div class="empty">🧪 Nenhum produto encontrado</div>'; return; }
-  g.innerHTML = lista.map(p=>`
-    <div class="product-card">
-      <div class="product-img">🧪</div>
+  const g=document.getElementById('catalogoGrid');
+  if(!lista.length){g.innerHTML='<div class="empty"><div class="empty-icon">🧪</div><p>Nenhum produto encontrado</p></div>';return;}
+  g.innerHTML=lista.map(p=>{
+    const c=catColor(p.categoria);
+    return `<div class="product-card">
+      <div class="product-header ph-${(p.categoria||'default').toLowerCase()}" style="background:linear-gradient(135deg,${c.bg}dd,${c.bg}99)">
+        <span class="product-icon">${c.icon}</span>
+        ${p.categoria?`<span class="product-cat-label">${p.categoria}</span>`:''}
+      </div>
       <div class="product-body">
         <div class="product-name">${p.nome}</div>
-        ${p.embalagem?`<div class="meta-row"><span class="meta-label">Embalagem:</span> ${p.embalagem}</div>`:''}
-        ${p.diluicao?`<div class="meta-row"><span class="meta-label">Diluição:</span> ${p.diluicao}</div>`:''}
-        ${p.aplicacao?`<div class="meta-row" style="flex:1">${p.aplicacao.substring(0,90)}${p.aplicacao.length>90?'…':''}</div>`:''}
+        ${p.embalagem?`<div class="info-chip"><span class="chip-icon">📦</span><div class="chip-content"><span class="chip-label">Embalagem</span><span class="chip-val">${p.embalagem}</span></div></div>`:''}
+        ${p.diluicao?`<div class="info-chip"><span class="chip-icon">💧</span><div class="chip-content"><span class="chip-label">Diluição</span><span class="chip-val">${p.diluicao}</span></div></div>`:''}
+        ${p.aplicacao?`<div class="info-chip"><span class="chip-icon">✅</span><div class="chip-content"><span class="chip-label">Aplicação</span><span class="chip-val">${p.aplicacao.substring(0,100)}${p.aplicacao.length>100?'…':''}</span></div></div>`:''}
       </div>
       <div class="product-footer">
-        <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄 Ver</button>
+        <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄 Ver ficha</button>
         <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}')">✏️ Editar</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
+// ── RENDER TABELA ──
 function renderTabela(lista){
-  const b = document.getElementById('tabelaBody');
-  if(!lista.length){ b.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">Nenhum produto</td></tr>'; return; }
-  b.innerHTML = lista.map(p=>`
-    <tr>
-      <td><strong>${p.nome}</strong></td>
-      <td>${p.embalagem||'—'}</td>
-      <td>${p.diluicao||'—'}</td>
-      <td style="max-width:200px">${p.aplicacao||'—'}</td>
-      <td>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄</button>
-          <button class="btn btn-outline btn-sm" onclick="editarProduto('${p.id}')">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome.replace(/'/g,'')}')">🗑️</button>
-        </div>
-      </td>
-    </tr>`).join('');
+  const b=document.getElementById('tabelaBody');
+  if(!lista.length){b.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Nenhum produto</td></tr>';return;}
+  b.innerHTML=lista.map(p=>`<tr>
+    <td><strong>${p.nome}</strong></td>
+    <td>${catBadge(p.categoria)||'—'}</td>
+    <td>${p.embalagem||'—'}</td>
+    <td>${p.diluicao||'—'}</td>
+    <td style="max-width:180px;font-size:.82rem">${p.aplicacao||'—'}</td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-outline btn-sm" onclick="verProduto('${p.id}')">📄</button>
+      <button class="btn btn-outline btn-sm" onclick="editarProduto('${p.id}')">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome.replace(/'/g,'')}')">🗑️</button>
+    </div></td>
+  </tr>`).join('');
 }
 
-window.filtrarProdutos = () => {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  renderCatalogo(produtos.filter(p=>[p.nome,p.embalagem,p.diluicao,p.aplicacao].some(v=>v&&v.toLowerCase().includes(q))));
+// ── FILTROS ──
+function aplicarFiltros(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const cat=document.getElementById('filterCat').value||tabAtiva;
+  renderCatalogo(produtos.filter(p=>{
+    const mq=!q||[p.nome,p.embalagem,p.diluicao,p.aplicacao].some(v=>v&&v.toLowerCase().includes(q));
+    const mc=!cat||p.categoria===cat;
+    return mq&&mc;
+  }));
+}
+window.filtrarProdutos=aplicarFiltros;
+
+window.setTab=(cat,el)=>{
+  tabAtiva=cat;
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('filterCat').value=cat;
+  aplicarFiltros();
 };
 
-window.filtrarLista = () => {
-  const q = document.getElementById('listaSearch').value.toLowerCase();
-  renderTabela(produtos.filter(p=>[p.nome,p.embalagem,p.diluicao,p.aplicacao].some(v=>v&&v.toLowerCase().includes(q))));
+window.filtrarLista=()=>{
+  const q=document.getElementById('listaSearch').value.toLowerCase();
+  const cat=document.getElementById('listaFilterCat').value;
+  renderTabela(produtos.filter(p=>{
+    const mq=!q||[p.nome,p.embalagem,p.diluicao,p.aplicacao].some(v=>v&&v.toLowerCase().includes(q));
+    return mq&&(!cat||p.categoria===cat);
+  }));
 };
 
-window.verProduto = (id) => {
-  const p = produtos.find(x=>x.id===id); if(!p) return;
-  document.getElementById('modalTitle').textContent = p.nome;
-  const row = (k,v) => v ? `<div class="ficha-row"><div class="ficha-key">${k}</div><div class="ficha-val">${v}</div></div>` : '';
-  document.getElementById('modalBody').innerHTML =
-    row('Embalagem', p.embalagem) +
-    row('Diluição', p.diluicao) +
-    row('Aplicação', p.aplicacao) +
+// ── VER PRODUTO ──
+window.verProduto=(id)=>{
+  const p=produtos.find(x=>x.id===id);if(!p)return;
+  const c=catColor(p.categoria);
+  document.getElementById('modalHero').style.background=`linear-gradient(135deg,${c.bg},${c.bg}99)`;
+  document.getElementById('modalIcon').textContent=c.icon;
+  document.getElementById('modalTitle').textContent=p.nome;
+  const row=(k,v)=>v?`<div class="ficha-row"><div class="ficha-key">${k}</div><div class="ficha-val">${v}</div></div>`:'';
+  document.getElementById('modalBody').innerHTML=
+    (p.categoria?`<div style="margin-bottom:14px">${catBadge(p.categoria)}</div>`:'')+
+    row('Embalagem',p.embalagem)+row('Diluição',p.diluicao)+row('Aplicação',p.aplicacao)+
     `<div style="display:flex;gap:8px;margin-top:18px">
       <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}');fecharModal()">✏️ Editar</button>
       <button class="btn btn-outline btn-sm" onclick="fecharModal()">Fechar</button>
     </div>`;
   document.getElementById('modalProd').classList.add('open');
 };
+window.fecharModal=()=>document.getElementById('modalProd').classList.remove('open');
+document.getElementById('modalProd').addEventListener('click',e=>{if(e.target===e.currentTarget)fecharModal();});
 
-window.fecharModal = () => document.getElementById('modalProd').classList.remove('open');
-document.getElementById('modalProd').addEventListener('click', e=>{ if(e.target===e.currentTarget) fecharModal(); });
-
-window.editarProduto = (id) => {
-  const p = produtos.find(x=>x.id===id); if(!p) return;
-  editandoId = id;
-  document.getElementById('f_nome').value      = p.nome||'';
-  document.getElementById('f_embalagem').value = p.embalagem||'';
-  document.getElementById('f_diluicao').value  = p.diluicao||'';
-  document.getElementById('f_aplicacao').value = p.aplicacao||'';
-  document.getElementById('btnSalvar').textContent = '💾 Atualizar Produto';
-  showPage('cadastro', document.querySelectorAll('.nav-btn')[1]);
+// ── EDITAR ──
+window.editarProduto=(id)=>{
+  const p=produtos.find(x=>x.id===id);if(!p)return;
+  editandoId=id;
+  document.getElementById('f_nome').value=p.nome||'';
+  document.getElementById('f_categoria').value=p.categoria||'';
+  document.getElementById('f_embalagem').value=p.embalagem||'';
+  document.getElementById('f_diluicao').value=p.diluicao||'';
+  document.getElementById('f_aplicacao').value=p.aplicacao||'';
+  document.getElementById('btnSalvar').textContent='💾 Atualizar Produto';
+  showPage('cadastro',document.querySelectorAll('.nav-btn')[1]);
   window.scrollTo({top:0,behavior:'smooth'});
 };
 
-window.deletarProduto = async (id, nome) => {
-  if(!confirm(`Excluir "${nome}"?`)) return;
-  try { await deleteDoc(doc(db,'produtos',id)); showToast('Produto excluído'); await carregar(); }
-  catch(e){ showToast('Erro: '+e.message,'error'); }
+window.deletarProduto=async(id,nome)=>{
+  if(!confirm(`Excluir "${nome}"?`))return;
+  try{await deleteDoc(doc(db,'produtos',id));showToast('Produto excluído');await carregar();}
+  catch(e){showToast('Erro: '+e.message,'error');}
 };
 
-window.limparForm = () => {
-  ['f_nome','f_embalagem','f_diluicao','f_aplicacao'].forEach(id=>document.getElementById(id).value='');
-  editandoId = null;
-  document.getElementById('btnSalvar').textContent = '💾 Salvar Produto';
+window.limparForm=()=>{
+  ['f_nome','f_categoria','f_embalagem','f_diluicao','f_aplicacao'].forEach(id=>document.getElementById(id).value='');
+  editandoId=null;
+  document.getElementById('btnSalvar').textContent='💾 Salvar Produto';
 };
 
-window.showPage = (nome, btn) => {
+window.showPage=(nome,btn)=>{
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+nome).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  if(btn)btn.classList.add('active');
+};
+
+// ── PDF MODAL ──
+window.abrirPdfModal=()=>document.getElementById('pdfOverlay').classList.add('open');
+window.fecharPdfModal=()=>document.getElementById('pdfOverlay').classList.remove('open');
+window.selecionarOpt=(el)=>{
+  document.querySelectorAll('.pdf-opt').forEach(o=>o.classList.remove('selected'));
+  el.closest('.pdf-opt').classList.add('selected');
+};
+
+// ── GERAR PDF ──
+window.gerarPDF=()=>{
+  const sel=document.querySelector('input[name="pdfcat"]:checked').value;
+  const lista=sel==='todos'?produtos:produtos.filter(p=>p.categoria===sel);
+  if(!lista.length){showToast('Nenhum produto nessa categoria','error');return;}
+
+  const btn=document.getElementById('btnGerarPdf');
+  btn.textContent='Gerando...';btn.disabled=true;
+
+  setTimeout(()=>{
+    try{
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+      const W=210,H=297,mg=14;
+      let y=0;
+
+      const CAT_HEX={
+        Piso:'#15803d',Cozinha:'#c2410c',
+        Lavanderia:'#1d4ed8',Institucional:'#6d28d9',
+        default:'#0369a1'
+      };
+
+      const hexToRgb=hex=>{
+        const r=parseInt(hex.slice(1,3),16);
+        const g=parseInt(hex.slice(3,5),16);
+        const b=parseInt(hex.slice(5,7),16);
+        return[r,g,b];
+      };
+
+      const novaPage=()=>{
+        doc.addPage();
+        y=0;
+        // rodapé
+        doc.setFontSize(8);doc.setTextColor(160,160,160);
+        doc.text('AB Chemicals — Catálogo de Produtos Profissionais',W/2,H-7,{align:'center'});
+        doc.text(`Página ${doc.getNumberOfPages()}`,W-mg,H-7,{align:'right'});
+      };
+
+      // ── CAPA ──
+      // fundo azul escuro
+      doc.setFillColor(0,31,77);
+      doc.rect(0,0,W,H,'F');
+
+      // faixa lateral decorativa
+      doc.setFillColor(0,114,206);
+      doc.rect(0,0,8,H,'F');
+
+      // círculos decorativos
+      doc.setFillColor(0,60,140);
+      doc.circle(W-30,40,50,'F');
+      doc.setFillColor(0,80,170);
+      doc.circle(W,H-20,70,'F');
+
+      // logo texto
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(42);doc.setTextColor(255,255,255);
+      doc.text('AB',mg+10,90);
+      doc.setFontSize(22);doc.setTextColor(0,160,255);
+      doc.text('CHEMICALS',mg+10,104);
+
+      // linha decorativa
+      doc.setDrawColor(0,114,206);doc.setLineWidth(1);
+      doc.line(mg+10,110,W-mg-10,110);
+
+      // subtítulo
+      doc.setFontSize(13);doc.setTextColor(180,210,255);doc.setFont('helvetica','normal');
+      doc.text('Linha Profissional de Limpeza e Higienização',mg+10,120);
+
+      // label catálogo
+      const labelCat=sel==='todos'?'Catálogo Completo':'Catálogo: '+sel;
+      doc.setFillColor(0,114,206);
+      doc.roundedRect(mg+10,132,100,12,3,3,'F');
+      doc.setFontSize(11);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');
+      doc.text(labelCat,mg+60,140,{align:'center'});
+
+      // data
+      const hoje=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      doc.setFontSize(9);doc.setTextColor(130,170,220);doc.setFont('helvetica','normal');
+      doc.text(hoje,mg+10,152);
+
+      // total produtos
+      doc.setFontSize(32);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');
+      doc.text(String(lista.length),mg+10,H-60);
+      doc.setFontSize(11);doc.setTextColor(130,170,220);doc.setFont('helvetica','normal');
+      doc.text('produtos neste catálogo',mg+10,H-52);
+
+      // rodapé capa
+      doc.setFontSize(8);doc.setTextColor(80,120,180);
+      doc.text('Documento gerado exclusivamente para apresentação comercial.',mg+10,H-10);
+
+      // ── CATEGORIAS SEPARADORAS + PRODUTOS ──
+      const grupos={};
+      lista.forEach(p=>{const c=p.categoria||'Geral';if(!grupos[c])grupos[c]=[];grupos[c].push(p);});
+
+      Object.keys(grupos).forEach(cat=>{
+        novaPage();
+
+        // cabeçalho de seção
+        const cor=CAT_HEX[cat]||CAT_HEX.default;
+        const [r,g,b]=hexToRgb(cor);
+        doc.setFillColor(r,g,b);
+        doc.rect(0,0,W,28,'F');
+        doc.setFillColor(0,31,77);
+        doc.rect(0,28,W,4,'F');
+
+        doc.setFontSize(18);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');
+        doc.text(cat,W/2,18,{align:'center'});
+        doc.setFontSize(9);doc.setTextColor(220,240,255);doc.setFont('helvetica','normal');
+        doc.text(`${grupos[cat].length} produto(s)`,W/2,24,{align:'center'});
+
+        y=40;
+
+        grupos[cat].forEach((p,i)=>{
+          const cardH=p.aplicacao&&p.aplicacao.length>80?52:44;
+          if(y+cardH>H-18){novaPage();y=14;}
+
+          // fundo alternado
+          if(i%2===0){doc.setFillColor(248,250,255);doc.rect(mg,y-4,W-mg*2,cardH,'F');}
+
+          // barra lateral colorida
+          doc.setFillColor(r,g,b);
+          doc.rect(mg,y-4,3,cardH,'F');
+
+          // nome do produto
+          doc.setFontSize(11);doc.setTextColor(20,30,60);doc.setFont('helvetica','bold');
+          doc.text(p.nome||'',mg+7,y+4);
+
+          // linha divisória leve
+          doc.setDrawColor(r,g,b);doc.setLineWidth(0.2);
+          doc.line(mg+7,y+6,W-mg,y+6);
+
+          let yc=y+13;
+          doc.setFont('helvetica','normal');
+
+          if(p.embalagem){
+            doc.setFontSize(7.5);doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');
+            doc.text('EMBALAGEM',mg+7,yc);
+            doc.setFontSize(9);doc.setTextColor(50,50,60);doc.setFont('helvetica','normal');
+            doc.text(p.embalagem,mg+35,yc);
+            yc+=7;
+          }
+          if(p.diluicao){
+            doc.setFontSize(7.5);doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');
+            doc.text('DILUIÇÃO',mg+7,yc);
+            doc.setFontSize(9);doc.setTextColor(50,50,60);doc.setFont('helvetica','normal');
+            doc.text(p.diluicao,mg+35,yc);
+            yc+=7;
+          }
+          if(p.aplicacao){
+            doc.setFontSize(7.5);doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');
+            doc.text('APLICAÇÃO',mg+7,yc);
+            doc.setFontSize(8.5);doc.setTextColor(50,50,60);doc.setFont('helvetica','normal');
+            const linhas=doc.splitTextToSize(p.aplicacao,W-mg*2-38);
+            doc.text(linhas.slice(0,2),mg+35,yc);
+          }
+
+          y+=cardH+4;
+        });
+      });
+
+      // numeração de páginas retroativa na capa
+      const total=doc.getNumberOfPages();
+      doc.setPage(1);
+      doc.setFontSize(9);doc.setTextColor(80,120,180);
+      doc.text(`${total-1} página(s) de produtos`,mg+10,H-16);
+
+      // salvar
+      const nomeArq=`catalogo-ab-chemicals-${sel==='todos'?'completo':sel.toLowerCase()}.pdf`;
+      doc.save(nomeArq);
+      showToast('PDF gerado com sucesso!');
+      fecharPdfModal();
+    }catch(e){showToast('Erro ao gerar PDF: '+e.message,'error');}
+    btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar PDF';
+    btn.disabled=false;
+  },100);
 };
 
 carregar();
