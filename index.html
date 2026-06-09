@@ -161,6 +161,15 @@ tbody tr:hover{background:#f9fbff}
 .cat-lavanderia{background:var(--cat-lav-bg);color:var(--cat-lav)}
 .cat-institucional{background:var(--cat-ins-bg);color:var(--cat-ins)}
 
+/* UPLOAD FOTO */
+.foto-upload{border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:.2s;position:relative;overflow:hidden;background:#fafbfd}
+.foto-upload:hover{border-color:var(--a);background:var(--light)}
+.foto-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.foto-upload-icon{font-size:2rem;margin-bottom:6px}
+.foto-upload p{font-size:.82rem;color:var(--muted);margin:0}
+.foto-preview-wrap{position:relative;text-align:center}
+.foto-preview{width:100%;max-height:200px;object-fit:contain;border-radius:10px;border:1px solid var(--border);background:#f8fafc;display:block}
+.foto-remove{position:absolute;top:6px;right:6px;background:rgba(192,57,43,.9);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;z-index:2}
 @media(max-width:600px){nav{overflow-x:auto}.catalog-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -236,6 +245,21 @@ tbody tr:hover{background:#f9fbff}
       <div class="field"><label>Embalagem</label><input id="f_embalagem" placeholder="Ex: Frasco 1L, Galão 5L, Saco 25kg..."></div>
       <div class="field"><label>Diluição</label><input id="f_diluicao" placeholder="Ex: 1:10 em água, 5%, Concentrado puro..."></div>
       <div class="field"><label>Aplicação</label><textarea id="f_aplicacao" placeholder="Descreva as aplicações e usos do produto..."></textarea></div>
+      <div class="field">
+        <label>Foto do Produto</label>
+        <div id="fotoUploadArea" class="foto-upload">
+          <input type="file" id="f_foto" accept="image/*" onchange="previewFoto(this)">
+          <div id="fotoPlaceholder">
+            <div class="foto-upload-icon">🖼️</div>
+            <p><strong>Clique para adicionar uma foto</strong></p>
+            <p style="margin-top:4px">JPG, PNG ou WEBP — máx. 1MB recomendado</p>
+          </div>
+          <div id="fotoPreviewWrap" class="foto-preview-wrap" style="display:none">
+            <button type="button" class="foto-remove" onclick="removerFoto(event)" title="Remover foto">✕</button>
+            <img id="fotoPreview" class="foto-preview" src="" alt="Preview">
+          </div>
+        </div>
+      </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-primary" id="btnSalvar" onclick="salvarProduto()">💾 Salvar Produto</button>
         <button class="btn btn-outline" onclick="limparForm()">Limpar</button>
@@ -340,6 +364,33 @@ const db = getFirestore(app);
 let produtos = [];
 let editandoId = null;
 let tabAtiva = '';
+let fotoBase64 = '';
+
+// ── FOTO UPLOAD ──
+window.previewFoto = (input) => {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 2*1024*1024){ showToast('Foto muito grande. Use até 2MB.','error'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    fotoBase64 = e.target.result;
+    document.getElementById('fotoPreview').src = fotoBase64;
+    document.getElementById('fotoPlaceholder').style.display = 'none';
+    document.getElementById('fotoPreviewWrap').style.display = 'block';
+    document.getElementById('fotoUploadArea').style.border = '2px solid var(--a)';
+  };
+  reader.readAsDataURL(file);
+};
+
+window.removerFoto = (e) => {
+  e.stopPropagation();
+  fotoBase64 = '';
+  document.getElementById('f_foto').value = '';
+  document.getElementById('fotoPreview').src = '';
+  document.getElementById('fotoPlaceholder').style.display = 'block';
+  document.getElementById('fotoPreviewWrap').style.display = 'none';
+  document.getElementById('fotoUploadArea').style.border = '2px dashed var(--border)';
+};
 
 // ── helpers ──
 const CAT_COLORS = {
@@ -375,6 +426,7 @@ window.salvarProduto = async()=>{
     embalagem:document.getElementById('f_embalagem').value.trim(),
     diluicao:document.getElementById('f_diluicao').value.trim(),
     aplicacao:document.getElementById('f_aplicacao').value.trim(),
+    foto: fotoBase64 || '',
   };
   try{
     if(editandoId){
@@ -408,10 +460,13 @@ function renderCatalogo(lista){
   if(!lista.length){g.innerHTML='<div class="empty"><div class="empty-icon">🧪</div><p>Nenhum produto encontrado</p></div>';return;}
   g.innerHTML=lista.map(p=>{
     const c=catColor(p.categoria);
+    const headerContent = p.foto
+      ? `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;display:block" alt="${p.nome}">`
+      : `<span class="product-icon" style="font-size:2.4rem;z-index:1">${c.icon}</span>${p.categoria?`<span class="product-cat-label">${p.categoria}</span>`:''}`;
     return `<div class="product-card">
-      <div class="product-header ph-${(p.categoria||'default').toLowerCase()}" style="background:linear-gradient(135deg,${c.bg}dd,${c.bg}99)">
-        <span class="product-icon">${c.icon}</span>
-        ${p.categoria?`<span class="product-cat-label">${p.categoria}</span>`:''}
+      <div class="product-header" style="background:${p.foto?'#f1f5f9':'linear-gradient(135deg,'+c.bg+'dd,'+c.bg+'99)'};${p.foto?'padding:0;overflow:hidden':''}">
+        ${headerContent}
+        ${p.foto&&p.categoria?`<span class="product-cat-label" style="position:absolute;top:8px;right:8px">${p.categoria}</span>`:''}
       </div>
       <div class="product-body">
         <div class="product-name">${p.nome}</div>
@@ -478,8 +533,18 @@ window.filtrarLista=()=>{
 window.verProduto=(id)=>{
   const p=produtos.find(x=>x.id===id);if(!p)return;
   const c=catColor(p.categoria);
-  document.getElementById('modalHero').style.background=`linear-gradient(135deg,${c.bg},${c.bg}99)`;
-  document.getElementById('modalIcon').textContent=c.icon;
+  const heroEl = document.getElementById('modalHero');
+  if(p.foto){
+    heroEl.style.background='#f1f5f9';
+    heroEl.style.padding='0';
+    heroEl.style.overflow='hidden';
+    heroEl.innerHTML=`<img src="${p.foto}" style="width:100%;height:100%;object-fit:contain;display:block" alt="${p.nome}">`;
+  } else {
+    heroEl.style.background=`linear-gradient(135deg,${c.bg},${c.bg}99)`;
+    heroEl.style.padding='20px';
+    heroEl.style.overflow='';
+    heroEl.innerHTML=`<div class="modal-hero-icon">${c.icon}</div>`;
+  }
   document.getElementById('modalTitle').textContent=p.nome;
   const row=(k,v)=>v?`<div class="ficha-row"><div class="ficha-key">${k}</div><div class="ficha-val">${v}</div></div>`:'';
   document.getElementById('modalBody').innerHTML=
@@ -503,6 +568,16 @@ window.editarProduto=(id)=>{
   document.getElementById('f_embalagem').value=p.embalagem||'';
   document.getElementById('f_diluicao').value=p.diluicao||'';
   document.getElementById('f_aplicacao').value=p.aplicacao||'';
+  // foto
+  fotoBase64 = p.foto || '';
+  if(fotoBase64){
+    document.getElementById('fotoPreview').src = fotoBase64;
+    document.getElementById('fotoPlaceholder').style.display = 'none';
+    document.getElementById('fotoPreviewWrap').style.display = 'block';
+    document.getElementById('fotoUploadArea').style.border = '2px solid var(--a)';
+  } else {
+    removerFoto({stopPropagation:()=>{}});
+  }
   document.getElementById('btnSalvar').textContent='💾 Atualizar Produto';
   showPage('cadastro',document.querySelectorAll('.nav-btn')[1]);
   window.scrollTo({top:0,behavior:'smooth'});
@@ -516,6 +591,7 @@ window.deletarProduto=async(id,nome)=>{
 
 window.limparForm=()=>{
   ['f_nome','f_categoria','f_embalagem','f_diluicao','f_aplicacao'].forEach(id=>document.getElementById(id).value='');
+  removerFoto({stopPropagation:()=>{}});
   editandoId=null;
   document.getElementById('btnSalvar').textContent='💾 Salvar Produto';
 };
@@ -648,7 +724,8 @@ window.gerarPDF=()=>{
         y=40;
 
         grupos[cat].forEach((p,i)=>{
-          const cardH=p.aplicacao&&p.aplicacao.length>80?52:44;
+          const cardH = 52;
+          const fotoW = p.foto ? 22 : 0;
           if(y+cardH>H-18){novaPage();y=14;}
 
           // fundo alternado
@@ -658,37 +735,46 @@ window.gerarPDF=()=>{
           doc.setFillColor(r,g,b);
           doc.rect(mg,y-4,3,cardH,'F');
 
+          // foto (se existir)
+          if(p.foto){
+            try{
+              doc.addImage(p.foto,'JPEG',mg+5,y-2,18,18,'','FAST');
+            }catch(err){}
+          }
+
+          const xBase = mg + 7 + fotoW;
+
           // nome do produto
           doc.setFontSize(11);doc.setTextColor(20,30,60);doc.setFont('helvetica','bold');
-          doc.text(p.nome||'',mg+7,y+4);
+          doc.text(p.nome||'',xBase,y+4);
 
           // linha divisória leve
           doc.setDrawColor(r,g,b);doc.setLineWidth(0.2);
-          doc.line(mg+7,y+6,W-mg,y+6);
+          doc.line(xBase,y+6,W-mg,y+6);
 
           let yc=y+13;
           doc.setFont('helvetica','normal');
 
           if(p.embalagem){
             doc.setFontSize(7.5);doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');
-            doc.text('EMBALAGEM',mg+7,yc);
+            doc.text('EMBALAGEM',xBase,yc);
             doc.setFontSize(9);doc.setTextColor(50,50,60);doc.setFont('helvetica','normal');
-            doc.text(p.embalagem,mg+35,yc);
+            doc.text(p.embalagem,xBase+28,yc);
             yc+=7;
           }
           if(p.diluicao){
             doc.setFontSize(7.5);doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');
-            doc.text('DILUIÇÃO',mg+7,yc);
+            doc.text('DILUIÇÃO',xBase,yc);
             doc.setFontSize(9);doc.setTextColor(50,50,60);doc.setFont('helvetica','normal');
-            doc.text(p.diluicao,mg+35,yc);
+            doc.text(p.diluicao,xBase+28,yc);
             yc+=7;
           }
           if(p.aplicacao){
             doc.setFontSize(7.5);doc.setTextColor(r,g,b);doc.setFont('helvetica','bold');
-            doc.text('APLICAÇÃO',mg+7,yc);
+            doc.text('APLICAÇÃO',xBase,yc);
             doc.setFontSize(8.5);doc.setTextColor(50,50,60);doc.setFont('helvetica','normal');
-            const linhas=doc.splitTextToSize(p.aplicacao,W-mg*2-38);
-            doc.text(linhas.slice(0,2),mg+35,yc);
+            const linhas=doc.splitTextToSize(p.aplicacao,W-mg*2-xBase+mg-4);
+            doc.text(linhas.slice(0,2),xBase+28,yc);
           }
 
           y+=cardH+4;
