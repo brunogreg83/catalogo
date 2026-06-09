@@ -143,6 +143,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   .divider{height:1px;background:linear-gradient(to right,transparent,var(--gray),transparent);margin:20px 0}
 
+  /* IMAGE UPLOAD */
+  .img-upload-area{
+    border:2px dashed var(--gray);border-radius:12px;
+    padding:18px;text-align:center;cursor:pointer;
+    transition:border-color .2s,background .2s;position:relative;
+    background:var(--off-white);
+  }
+  .img-upload-area:hover,.img-upload-area.drag{
+    border-color:var(--sky);background:var(--sky-light);
+  }
+  .img-upload-area input[type=file]{
+    position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+  }
+  .img-upload-area .upload-icon{font-size:1.6rem;margin-bottom:4px;opacity:.5}
+  .img-upload-area p{font-size:.78rem;color:var(--text-muted);line-height:1.4}
+  .img-upload-area strong{color:var(--blue);font-weight:700}
+  .img-preview-wrap{position:relative;display:inline-block}
+  .img-preview{
+    width:100%;max-height:160px;object-fit:contain;
+    border-radius:8px;border:1.5px solid var(--gray);
+    background:#fff;display:block;
+  }
+  .img-remove{
+    position:absolute;top:-8px;right:-8px;
+    background:var(--red);color:#fff;border:none;
+    width:22px;height:22px;border-radius:50%;cursor:pointer;
+    font-size:.9rem;line-height:22px;text-align:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .15s;
+  }
+  .img-remove:hover{transform:scale(1.15)}
+
+  /* product card image */
+  .prod-img{
+    width:100%;max-height:120px;object-fit:contain;
+    border-radius:0 0 0 0;border-bottom:1px solid var(--gray);
+    background:var(--off-white);display:block;padding:8px 0;
+  }
+
   .btn-secondary{background:var(--off-white);color:var(--text-muted);
     border:1.5px solid var(--gray);padding:9px 16px;border-radius:10px;cursor:pointer;
     font-family:"Montserrat",sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.5px;
@@ -305,6 +343,29 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
+      <!-- IMAGE UPLOAD -->
+      <div class="form-row full" style="margin-bottom:0">
+        <div class="form-group">
+          <label>Imagem do Produto (opcional)</label>
+          <div class="img-upload-area" id="uploadArea"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="handleDrop(event)">
+            <input type="file" id="fImagem" accept="image/*" onchange="handleImageSelect(this)"/>
+            <div id="uploadPrompt">
+              <div class="upload-icon">🖼️</div>
+              <p><strong>Clique ou arraste</strong> uma imagem aqui<br/>JPG, PNG, WEBP — máx. 2MB</p>
+            </div>
+            <div id="uploadPreview" style="display:none">
+              <div class="img-preview-wrap">
+                <img id="imgPreview" class="img-preview" src="" alt="Preview"/>
+                <button class="img-remove" onclick="removerImagem(event)" title="Remover imagem">×</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="extraFields"></div>
 
       <button class="btn-secondary" onclick="addCampoExtra()">
@@ -402,12 +463,13 @@ function limparForm(){
   document.getElementById("fCategoria").value="";
   document.getElementById("extraFields").innerHTML="";
   camposExtra=[];
+  resetImagemForm();
   editandoId=null;
-  document.getElementById("btnAddLabel").textContent="Adicionar ao Catálogo";
-  document.getElementById("btnAdd").innerHTML=`
+  const btnAdd = document.getElementById("btnAdd");
+  btnAdd.innerHTML=`
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     <span id="btnAddLabel">Adicionar ao Catálogo</span>`;
-  document.getElementById("btnAdd").disabled=true;
+  btnAdd.disabled=true;
   document.getElementById("formTitle").textContent="Adicionar Produto";
 }
 
@@ -437,6 +499,54 @@ function removeCampoExtra(id){
   document.getElementById(id)?.remove();
 }
 
+// ── IMAGE HANDLING ───────────────────────────────────────
+let imagemBase64 = null;
+
+function handleImageSelect(input){
+  const file = input.files[0];
+  if(!file) return;
+  processarImagem(file);
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById("uploadArea").classList.remove("drag");
+  const file = e.dataTransfer.files[0];
+  if(!file || !file.type.startsWith("image/")) return;
+  processarImagem(file);
+}
+
+function processarImagem(file){
+  if(file.size > 2*1024*1024){
+    showToast("Imagem muito grande. Máx. 2MB.","error"); return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    imagemBase64 = e.target.result; // data:image/...;base64,...
+    document.getElementById("imgPreview").src = imagemBase64;
+    document.getElementById("uploadPrompt").style.display = "none";
+    document.getElementById("uploadPreview").style.display = "block";
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerImagem(e){
+  e.stopPropagation();
+  imagemBase64 = null;
+  document.getElementById("fImagem").value = "";
+  document.getElementById("imgPreview").src = "";
+  document.getElementById("uploadPrompt").style.display = "block";
+  document.getElementById("uploadPreview").style.display = "none";
+}
+
+function resetImagemForm(){
+  imagemBase64 = null;
+  document.getElementById("fImagem").value = "";
+  document.getElementById("imgPreview").src = "";
+  document.getElementById("uploadPrompt").style.display = "block";
+  document.getElementById("uploadPreview").style.display = "none";
+}
+
 // ── SAVE TO FIRESTORE ─────────────────────────────────────
 async function salvarProduto(){
   const nome      = document.getElementById("fNome").value.trim();
@@ -461,10 +571,10 @@ async function salvarProduto(){
 
   try{
     if(editandoId){
-      await window._fb.update(editandoId,{nome,categoria,attrs});
+      await window._fb.update(editandoId,{nome,categoria,attrs,imagem:imagemBase64||null});
       showToast("Produto atualizado!");
     } else {
-      await window._fb.add({nome,categoria,attrs});
+      await window._fb.add({nome,categoria,attrs,imagem:imagemBase64||null});
       showToast("Produto salvo no Firebase!");
     }
     showSaving();
@@ -473,7 +583,7 @@ async function salvarProduto(){
     console.error(e);
     showToast("Erro ao salvar: "+e.message,"error");
     btn.disabled=false;
-    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span id="btnAddLabel">Tentar novamente</span>`;
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tentar novamente`;
   }
 }
 
@@ -501,6 +611,7 @@ function editarProduto(id){
   });
   document.getElementById("extraFields").innerHTML="";
   camposExtra=[];
+  resetImagemForm();
 
   const mp={"Embalagem":"fEmbalagem","Diluição":"fDiluicao","Aplicação":"fAplicacao","Descrição":"fDescricao"};
   const known=Object.keys(mp);
@@ -516,10 +627,21 @@ function editarProduto(id){
     }
   });
 
-  document.getElementById("btnAdd").disabled=false;
-  document.getElementById("btnAdd").innerHTML=`
+  // load existing image
+  if(p.imagem){
+    imagemBase64 = p.imagem;
+    document.getElementById("imgPreview").src = p.imagem;
+    document.getElementById("uploadPrompt").style.display="none";
+    document.getElementById("uploadPreview").style.display="block";
+  } else {
+    resetImagemForm();
+  }
+
+  const btnAddEdit = document.getElementById("btnAdd");
+  btnAddEdit.disabled=false;
+  btnAddEdit.innerHTML=`
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    <span id="btnAddLabel">Salvar Alterações</span>`;
+    Salvar Alterações`;
   document.getElementById("formTitle").textContent="Editar Produto";
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -556,6 +678,7 @@ window.renderLista = function(){
               <button onclick="removerProduto('${p.id}')">🗑 Remover</button>
             </div>
           </div>
+          ${p.imagem?`<img class="prod-img" src="${p.imagem}" alt="${p.nome}"/>`:""}
           <div class="product-card-body">
             <div class="product-card-name">${p.nome}</div>
             ${(p.attrs||[]).length?`<div class="product-attrs">
@@ -722,7 +845,12 @@ async function gerarPDF(){
 
       for(const p of gprods){
         const AH=6.2;
-        const ch=8+5+(p.attrs||[]).length*AH+8;
+        const IMG_W=38, IMG_H=28, IMG_PAD=4;
+        const hasImg=!!p.imagem;
+        // card height: if has image, text is right of image; card height = max(img+pad, text height)
+        const attrsH=(p.attrs||[]).length*AH;
+        const textH=8+5+attrsH+8;
+        const ch=hasImg ? Math.max(IMG_H+IMG_PAD*2, textH) : textH;
 
         if(cy+ch>PH-20){
           doc.addPage(); pgNum++;
@@ -747,19 +875,33 @@ async function gerarPDF(){
           doc.rect(MG,cy+i*(ch/8),2.2,ch/8+.5,"F");
         }
 
+        // image (right side)
+        const textX = MG+7;
+        const textW = hasImg ? CW - IMG_W - IMG_PAD*3 - 2 : CW - 10;
+        if(hasImg){
+          try{
+            // image area background
+            const imgX = MG+CW-IMG_W-IMG_PAD;
+            const imgY = cy+IMG_PAD;
+            doc.setFillColor(...BLUE_PALE);
+            doc.roundedRect(imgX-2, imgY-2, IMG_W+4, IMG_H+4, 2,2,"F");
+            doc.addImage(p.imagem, imgX, imgY, IMG_W, IMG_H, undefined, "FAST", 0);
+          } catch(imgErr){ console.warn("Img error",imgErr); }
+        }
+
         doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.setTextColor(...TEXT);
-        doc.text(p.nome,MG+7,cy+7);
+        doc.text(p.nome,textX,cy+7);
 
         doc.setLineWidth(.2); doc.setDrawColor(220,232,245);
-        doc.line(MG+7,cy+9.5,MG+CW-4,cy+9.5);
+        doc.line(textX,cy+9.5,hasImg ? MG+textW+2 : MG+CW-4,cy+9.5);
 
         let ay=cy+9.5+5;
         (p.attrs||[]).forEach(({l:label,v:value})=>{
           doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.setTextColor(...BLUE);
-          doc.text((label+":").toUpperCase(),MG+7,ay,{charSpace:.5});
+          doc.text((label+":").toUpperCase(),textX,ay,{charSpace:.5});
           doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...TEXT);
-          const lines=doc.splitTextToSize(value,CW-50);
-          doc.text(lines[0],MG+44,ay);
+          const lines=doc.splitTextToSize(value, hasImg ? textW-38 : CW-50);
+          doc.text(lines[0],textX+37,ay);
           ay+=AH;
         });
         cy+=ch+5;
