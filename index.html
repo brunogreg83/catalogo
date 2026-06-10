@@ -802,76 +802,93 @@ async function gerarPDF(){
       }
     }
 
+    // ══ HELPER: bolhas de fundo ════════════════════════════
+    function drawBubbles(page) {
+      // 'cover' = capa branca, 'content' = páginas off-white
+      const sets = {
+        cover: [
+          { x: PW * 0.92, y: PH * 0.06, r: 64, base: [220, 238, 255] },
+          { x: PW * -0.02, y: PH * 0.30, r: 50, base: [210, 232, 255] },
+          { x: PW * 0.78, y: PH * 0.62, r: 36, base: [225, 241, 255] },
+          { x: PW * 0.18, y: PH * 0.88, r: 45, base: [215, 236, 255] },
+          { x: PW * 0.55, y: PH * 0.48, r: 22, base: [230, 244, 255] },
+        ],
+        content: [
+          { x: PW * 0.90, y: PH * 0.10, r: 44, base: [210, 230, 250] },
+          { x: PW * 0.04, y: PH * 0.75, r: 36, base: [208, 228, 248] },
+          { x: PW * 0.80, y: PH * 0.60, r: 26, base: [215, 233, 252] },
+        ],
+      };
+      const bg  = page === 'cover' ? C.white    : C.offWhite;
+      const list = sets[page] || sets.content;
+      list.forEach(b => {
+        // 16 anéis do exterior (bg) para o interior (base color)
+        const steps = 16;
+        for (let s = 0; s < steps; s++) {
+          const t = s / steps;          // 0 = borda, 1 = centro
+          const radius = b.r * (1 - t * 0.55);
+          const blend  = t * t;         // easing quadrático — suave
+          doc.setFillColor(
+            Math.round(bg[0] + (b.base[0] - bg[0]) * blend),
+            Math.round(bg[1] + (b.base[1] - bg[1]) * blend),
+            Math.round(bg[2] + (b.base[2] - bg[2]) * blend)
+          );
+          doc.circle(b.x, b.y, radius, "F");
+        }
+      });
+    }
+
     // ══ CAPA ══════════════════════════════════════════════
-    // Fundo branco puro (como o site)
     F(C.white); doc.rect(0, 0, PW, PH, "F");
 
-    // Blob decorativo top-right (radial, muito sutil — igual ao hero do site)
-    for (let r = 80; r > 0; r -= 2) {
-      const alpha = (80 - r) / 80 * 0.06;
-      const R = Math.round(255 - alpha * (255 - C.blue[0]));
-      const G = Math.round(255 - alpha * (255 - C.blue[1]));
-      const B = Math.round(255 - alpha * (255 - C.blue[2]));
-      doc.setFillColor(R, G, B);
-      doc.circle(PW + 10, -10, r, "F");
-    }
-    // Blob bottom-left
-    for (let r = 60; r > 0; r -= 2) {
-      const alpha = (60 - r) / 60 * 0.05;
-      const R = Math.round(255 - alpha * (255 - C.sky[0]));
-      const G = Math.round(255 - alpha * (255 - C.sky[1]));
-      const B = Math.round(255 - alpha * (255 - C.sky[2]));
-      doc.setFillColor(R, G, B);
-      doc.circle(-10, PH + 10, r, "F");
-    }
+    // Bolhas de fundo (como hero do site)
+    drawBubbles('cover');
 
-    // Barra fina no topo (igual nav do site)
+    // Barra fina no topo
     gradBar(0, 0, PW, 3);
 
-    // Logo — centrada, grande, respira
-    const lw = 90, lh = lw * (1210 / 1648);
-    doc.addImage(logoData, "PNG", (PW - lw) / 2, 28, lw, lh);
+    // Logo — centrada, grande
+    const lw = 96, lh = lw * (1210 / 1648);
+    doc.addImage(logoData, "PNG", (PW - lw) / 2, 24, lw, lh);
 
-    // Linha divisória fina — traço azul sky (hero do site tem isso)
-    const divY = 28 + lh + 12;
+    // Linha divisória sky
+    const divY = 24 + lh + 10;
     D(C.sky); doc.setLineWidth(0.4);
-    doc.line(PW / 2 - 30, divY, PW / 2 + 30, divY);
+    doc.line(PW / 2 - 28, divY, PW / 2 + 28, divY);
 
-    // Badge — igual ao hero-badge do site
+    // Badge "PORTFÓLIO COMPLETO" — pill centralizado
     const badgeY = divY + 8;
     const badgeTxt = "PORTFÓLIO COMPLETO";
-    const badgeW = 58;
-    F(C.bluePale); D(C.gray); doc.setLineWidth(0.3);
-    doc.roundedRect((PW - badgeW) / 2, badgeY, badgeW, 7, 1.5, 1.5, "FD");
-    // dot sky antes do texto
-    F(C.sky); doc.circle((PW - badgeW) / 2 + 5, badgeY + 3.5, 1.2, "F");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(6);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    const badgeTW = doc.getTextWidth(badgeTxt);
+    const badgeW = badgeTW + 22;
+    const badgeX = (PW - badgeW) / 2;
+    F(C.bluePale); D([180, 210, 245]); doc.setLineWidth(0.3);
+    doc.roundedRect(badgeX, badgeY, badgeW, 8.5, 4, 4, "FD");
     T(C.blue);
-    doc.text(badgeTxt, (PW - badgeW) / 2 + 10, badgeY + 5, { charSpace: 2 });
+    doc.text(badgeTxt, PW / 2, badgeY + 6, { align: "center", charSpace: 2 });
 
-    // Título principal — Montserrat 900 (weight 900 = bold bold aqui)
-    const titleY = badgeY + 18;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(28);
+    // Título principal
+    const titleY = badgeY + 20;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(36);
     T(C.text);
     doc.text("Linha Profissional de", PW / 2, titleY, { align: "center" });
-    // Segunda linha em azul (como o <span> do site)
     T(C.blue);
-    doc.text("Limpeza e Higienização", PW / 2, titleY + 12, { align: "center" });
+    doc.text("Limpeza e Higienização", PW / 2, titleY + 16, { align: "center" });
 
-    // Subtítulo — Nunito regular, muted
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-    T(C.muted);
-    doc.text("Soluções profissionais para cada necessidade", PW / 2, titleY + 24, { align: "center" });
+    // (subtítulo removido a pedido)
 
-    // Botão primário — igual .btn-primary do site (pill, azul, sombra)
+    // Pill com data — botão azul pill como .btn-primary
     const mes = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-    const btnW = 74, btnH = 10, btnX = (PW - btnW) / 2, btnY = titleY + 33;
-    F(C.blue); doc.roundedRect(btnX, btnY, btnW, btnH, 5, 5, "F");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+    const btnTW = doc.getTextWidth(`Catálogo  ·  ${mes.charAt(0).toUpperCase() + mes.slice(1)}`);
+    const btnW = btnTW + 20, btnH = 11;
+    const btnX = (PW - btnW) / 2, btnY = titleY + 24;
+    F(C.blue); doc.roundedRect(btnX, btnY, btnW, btnH, 5.5, 5.5, "F");
     T(C.white);
-    doc.text(`Catálogo  ·  ${mes.charAt(0).toUpperCase() + mes.slice(1)}`, PW / 2, btnY + 7, { align: "center" });
+    doc.text(`Catálogo  ·  ${mes.charAt(0).toUpperCase() + mes.slice(1)}`, PW / 2, btnY + 7.8, { align: "center" });
 
-    // Stats — cards off-white com sombra leve (igual feature-card do site)
+    // Stats
     const cats_u = [...new Set(prods.map(p => p.categoria))];
     const stats = [
       { v: String(prods.length), l: "produtos" },
@@ -879,62 +896,68 @@ async function gerarPDF(){
     ];
     const stY = btnY + 18;
     stats.forEach((s, i, a) => {
-      const cx = PW / 2 + (i - (a.length - 1) / 2) * 58;
-      // sombra
-      doc.setFillColor(220, 228, 240);
-      doc.roundedRect(cx - 24, stY + 1.2, 48, 20, 5, 5, "F");
-      // card
+      const cx = PW / 2 + (i - (a.length - 1) / 2) * 60;
+      doc.setFillColor(215, 226, 242);
+      doc.roundedRect(cx - 25, stY + 1.5, 50, 22, 6, 6, "F");
       F(C.offWhite); D(C.gray); doc.setLineWidth(0.3);
-      doc.roundedRect(cx - 24, stY, 48, 20, 5, 5, "FD");
-      doc.setFont("helvetica", "bold"); doc.setFontSize(18); T(C.blue);
-      doc.text(s.v, cx, stY + 13, { align: "center" });
-      doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
-      doc.text(s.l, cx, stY + 18.5, { align: "center" });
+      doc.roundedRect(cx - 25, stY, 50, 22, 6, 6, "FD");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(20); T(C.blue);
+      doc.text(s.v, cx, stY + 14, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); T(C.muted);
+      doc.text(s.l, cx, stY + 20, { align: "center" });
     });
 
-    // Lista de categorias — pequenos badges (igual pill de categoria do site)
-    const catBadgeY = stY + 28;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(7); T(C.muted);
-    doc.text("Categorias:", PW / 2, catBadgeY, { align: "center" });
-    let bx = 0;
-    const allCats = cats_u;
-    const totalBW = allCats.reduce((sum, c) => sum + doc.getTextWidth(c) * 0.7 + 12, 0) + (allCats.length - 1) * 4;
-    let bStart = (PW - Math.min(totalBW, PW - 20)) / 2;
-    allCats.forEach(cat => {
-      const cw = doc.getTextWidth(cat) * 0.7 + 12;
-      F(C.bluePale); D(C.gray); doc.setLineWidth(0.3);
-      doc.roundedRect(bStart + bx, catBadgeY + 3, cw, 7, 2, 2, "FD");
-      doc.setFont("helvetica", "bold"); doc.setFontSize(6.5); T(C.blue);
-      doc.text(cat, bStart + bx + cw / 2, catBadgeY + 8, { align: "center" });
-      bx += cw + 4;
+    // Categorias — badges maiores e mais visíveis
+    const catBadgeY = stY + 32;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); T(C.muted);
+    doc.text("CATEGORIAS", PW / 2, catBadgeY, { align: "center", charSpace: 2 });
+    // calcular largura total
+    doc.setFontSize(8.5);
+    const catItems = cats_u;
+    const catPadH = 5, catPadW = 10;
+    const catH = 9;
+    let totalCW = catItems.reduce((sum, c) => sum + doc.getTextWidth(c) + catPadW * 2, 0) + (catItems.length - 1) * 5;
+    let catX = (PW - Math.min(totalCW, PW - 24)) / 2;
+    catItems.forEach(cat => {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+      const cw = doc.getTextWidth(cat) + catPadW * 2;
+      // sombra
+      doc.setFillColor(200, 218, 240);
+      doc.roundedRect(catX + 0.8, catBadgeY + 4.8, cw, catH, 3, 3, "F");
+      // badge fundo azul
+      F(C.blue); doc.roundedRect(catX, catBadgeY + 4, cw, catH, 3, 3, "F");
+      T(C.white);
+      doc.text(cat, catX + cw / 2, catBadgeY + 4 + catH - 2.5, { align: "center" });
+      catX += cw + 5;
     });
 
-    // Rodapé da capa — igual ao footer do site
+    // Rodapé
     F(C.text); doc.rect(0, PH - 18, PW, 18, "F");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.white);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.white);
     doc.text("AB Chemicals", PW / 2, PH - 10, { align: "center" });
     doc.setFont("helvetica", "normal"); doc.setFontSize(7); T([150, 170, 200]);
-    doc.text("Soluções em Limpeza Profissional  ·  www.abchemicals.com.br", PW / 2, PH - 5, { align: "center" });
+    doc.text("Soluções em Limpeza Profissional  ·  www.abchemicals.com.br", PW / 2, PH - 4.5, { align: "center" });
 
     // ══ PÁGINAS DE PRODUTO ════════════════════════════════
     const groups = {};
     prods.forEach(p => { if (!groups[p.categoria]) groups[p.categoria] = []; groups[p.categoria].push(p); });
 
     function drawContentHeader() {
-      // off-white bg
+      // fundo off-white
       F(C.offWhite); doc.rect(0, 0, PW, PH, "F");
+      // bolhas muito sutis nas páginas de produto
+      drawBubbles('content');
       // barra azul fina no topo (3mm)
       gradBar(0, 0, PW, 3);
       // logo pequena
-      const lhS = 18 * (1210 / 1648);
-      doc.addImage(logoData, "PNG", 10, 4.5, 18, lhS);
-      // título da empresa
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
-      doc.text("AB Chemicals", 31, 9.5);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); T(C.muted);
-      doc.text("Catálogo de Produtos", 31, 14);
-      // número de página do lado direito (preenchido depois)
-      return 3 + lhS + 4; // retorna Y onde começa o conteúdo
+      const lhS = 20 * (1210 / 1648);
+      doc.addImage(logoData, "PNG", 10, 4, 20, lhS);
+      // nome empresa
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); T(C.blue);
+      doc.text("AB Chemicals", 33, 9);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
+      doc.text("Catálogo de Produtos", 33, 14.5);
+      return 3 + lhS + 5;
     }
 
     let pgNum = 1;
@@ -943,22 +966,37 @@ async function gerarPDF(){
 
       const startY = drawContentHeader();
 
-      // ── Cabeçalho de categoria ──
-      // Fundo azul sólido (não gradiente) — limpo e moderno
-      const SH = 16;
-      F(C.blue); doc.rect(0, startY, PW, SH, "F");
-      // Ponto sky decorativo (igual hero-badge dot)
-      F(C.sky); doc.circle(14, startY + SH / 2, 3, "F");
-      // Nome
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+      // ── Banner de categoria ────────────────────────────
+      const SH = 24;
+      F(C.blueDk); doc.rect(0, startY, PW, SH, "F");
+      // faixa sky brilhante na base
+      F(C.sky); doc.rect(0, startY + SH - 2.5, PW, 2.5, "F");
+      // bolha decorativa dentro do banner (direita)
+      for (let step = 0; step < 8; step++) {
+        const t = step / 8;
+        doc.setFillColor(
+          Math.round(C.sky[0] + (C.blueDk[0] - C.sky[0]) * t),
+          Math.round(C.sky[1] + (C.blueDk[1] - C.sky[1]) * t),
+          Math.round(C.sky[2] + (C.blueDk[2] - C.sky[2]) * t)
+        );
+        doc.circle(PW - 20, startY + SH / 2, 18 * (1 - t * 0.5), "F");
+      }
+      // ícone dot sky
+      // dot sky
+      F(C.sky); doc.circle(15, startY + SH / 2, 4, "F");
+      // nome categoria
+      doc.setFont("helvetica", "bold"); doc.setFontSize(19);
       T(C.white);
-      doc.text(catName, 22, startY + SH - 4.5);
-      // Contagem — direita, muted branco
-      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-      doc.setTextColor(180, 210, 255);
-      doc.text(`${gprods.length} produto${gprods.length > 1 ? "s" : ""}`, PW - 12, startY + SH - 4.5, { align: "right" });
+      doc.text(catName.toUpperCase(), 26, startY + SH - 5, { charSpace: 1.5 });
+      // contagem — pill à direita
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+      const cntTxt = `${gprods.length} produto${gprods.length > 1 ? "s" : ""}`;
+      const cntW = doc.getTextWidth(cntTxt) + 10;
+      F(C.blueLt); doc.roundedRect(PW - cntW - 12, startY + SH / 2 - 4.5, cntW, 9, 4, 4, "F");
+      T(C.white);
+      doc.text(cntTxt, PW - 12 - cntW / 2, startY + SH / 2 + 1.5, { align: "center" });
 
-      let cy = startY + SH + 6;
+      let cy = startY + SH + 7;
       const MG = 11, CW = PW - MG * 2;
 
       for (const p of gprods) {
@@ -1000,9 +1038,9 @@ async function gerarPDF(){
 
         // Nome do produto
         const NAMEPAD = MG + 8;
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(12.5);
         T(C.text);
-        doc.text(p.nome, NAMEPAD, cy + 9);
+        doc.text(p.nome, NAMEPAD, cy + 10);
 
         // Linha divisória fina sob o nome (sky)
         D(C.sky); doc.setLineWidth(0.25);
@@ -1033,16 +1071,14 @@ async function gerarPDF(){
 
         // Atributos — label + valor em grid
         const textAreaW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 16;
-        let ay = cy + 16;
+        let ay = cy + 17;
         (p.attrs || []).forEach(({ l: label, v: value }) => {
-          // Label — cor azul, uppercase, Montserrat bold (like .attr-label)
-          doc.setFont("helvetica", "bold"); doc.setFontSize(6.5);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
           T(C.blue);
-          doc.text(label.toUpperCase(), NAMEPAD, ay);
-          // Valor — Nunito normal, text color
-          doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+          doc.text(label.toUpperCase(), NAMEPAD, ay, { charSpace: 0.5 });
+          doc.setFont("helvetica", "normal"); doc.setFontSize(10);
           T(C.text);
-          const labelW = 34;
+          const labelW = 36;
           const lines = doc.splitTextToSize(value, textAreaW - labelW);
           doc.text(lines[0], NAMEPAD + labelW, ay);
           ay += AH;
