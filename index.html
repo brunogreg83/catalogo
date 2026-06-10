@@ -760,66 +760,151 @@ async function gerarPDF(){
       }
     }
 
-    // ── CAPA ──
-    doc.setFillColor(...WHITE); doc.rect(0,0,PW,PH,"F");
-    doc.setFillColor(235,244,255); doc.circle(PW+14,18,52,"F");
-    doc.setFillColor(240,248,255); doc.circle(-14,PH-18,48,"F");
-    grad(0,0,PW,6);
-
+    // ─── HELPERS ──────────────────────────────────────────────
     const logoData="data:image/png;base64,"+LOGO_B64;
-    const lw=78,lh=lw*(1210/1648);
-    doc.addImage(logoData,"PNG",(PW-lw)/2,PH*.33,lw,lh);
 
-    const ry=PH*.33+lh+6;
-    for(let i=0;i<40;i++){
-      const t=i/40;
-      doc.setDrawColor(
-        Math.round(BLUE[0]+(SKY[0]-BLUE[0])*t),
-        Math.round(BLUE[1]+(SKY[1]-BLUE[1])*t),
-        Math.round(BLUE[2]+(SKY[2]-BLUE[2])*t));
-      doc.setLineWidth(.4);
-      doc.line(30+i*(150/40),ry,30+(i+1)*(150/40),ry);
+    // diagonal gradient fill (top-left → bottom-right)
+    function diagGrad(x,y,w,h,c1,c2,steps=30){
+      for(let i=0;i<steps;i++){
+        const t=i/steps;
+        doc.setFillColor(
+          Math.round(c1[0]+(c2[0]-c1[0])*t),
+          Math.round(c1[1]+(c2[1]-c1[1])*t),
+          Math.round(c1[2]+(c2[2]-c1[2])*t));
+        // diagonal slice
+        doc.rect(x+i*(w/steps),y,w/steps+.5,h,"F");
+      }
     }
 
-    doc.setFont("helvetica","bold"); doc.setFontSize(6.5);
-    doc.setTextColor(...BLUE);
-    doc.text("PORTFÓLIO COMPLETO",PW/2,ry+8,{align:"center",charSpace:2});
+    // wave shape (3 arcs) at bottom of a rect
+    function drawWave(x,y,w,amp,col){
+      doc.setFillColor(...col);
+      const seg=w/60;
+      for(let i=0;i<60;i++){
+        const t1=i/60, t2=(i+1)/60;
+        const y1=y+amp*Math.sin(t1*Math.PI*3);
+        const y2=y+amp*Math.sin(t2*Math.PI*3);
+        const py=Math.min(y1,y2);
+        const ph2=amp*2+Math.abs(y1-y2);
+        doc.rect(x+i*seg,py,seg+.3,ph2,"F");
+      }
+    }
 
-    doc.setFontSize(22); doc.setTextColor(...TEXT);
-    doc.text("Linha Profissional de",PW/2,ry+20,{align:"center"});
-    doc.setTextColor(...BLUE);
-    doc.text("Limpeza e Higienização",PW/2,ry+29,{align:"center"});
+    // ─── CAPA REDESENHADA ─────────────────────────────────────
+    // Fundo: gradiente diagonal azul escuro → azul médio
+    diagGrad(0,0,PW,PH,[10,35,90],[30,100,185]);
 
-    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...MUTED);
-    doc.text("Soluções profissionais para cada necessidade",PW/2,ry+38,{align:"center"});
+    // Painel branco no terço inferior (corte diagonal)
+    // Simulado com retângulo branco + triângulo cortado
+    const splitY = PH*0.62;
+    doc.setFillColor(255,255,255);
+    doc.rect(0,splitY,PW,PH-splitY,"F");
 
-    const pw2=82,ph2=8,px=(PW-pw2)/2,py=ry+44;
-    doc.setFillColor(...BLUE_PALE);
-    doc.setDrawColor(180,208,245); doc.setLineWidth(.4);
-    doc.roundedRect(px,py,pw2,ph2,3,3,"FD");
-    doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(...BLUE);
+    // Faixa diagonal de transição (degradê azul→branco)
+    for(let i=0;i<20;i++){
+      const t=i/20;
+      const r=Math.round(30+(255-30)*t);
+      const g=Math.round(100+(255-100)*t);
+      const b=Math.round(185+(255-185)*t);
+      doc.setFillColor(r,g,b);
+      doc.rect(0,splitY-18+(i*18/20),PW,18/20+.3,"F");
+    }
+
+    // Círculos decorativos (brilhos)
+    doc.setFillColor(255,255,255); doc.setGState(doc.GState({opacity:.06}));
+    doc.circle(PW-30,40,55,"F");
+    doc.circle(20,100,40,"F");
+    doc.circle(PW/2,PH*0.45,70,"F");
+    doc.setGState(doc.GState({opacity:1}));
+
+    // Linha fina horizontal brilhante
+    for(let i=0;i<PW;i++){
+      const t=Math.abs(Math.sin(i/PW*Math.PI));
+      doc.setDrawColor(255,255,255);
+      doc.setGState(doc.GState({opacity:t*.35}));
+      doc.setLineWidth(.4);
+      doc.line(i,splitY-1,i+1,splitY-1);
+    }
+    doc.setGState(doc.GState({opacity:1}));
+
+    // Logo centrada no painel azul
+    const lw=88, lh=lw*(1210/1648);
+    const lx=(PW-lw)/2, ly=PH*0.09;
+    doc.addImage(logoData,"PNG",lx,ly,lw,lh);
+
+    // Tagline acima da logo
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5);
+    doc.setTextColor(180,215,255);
+    doc.text("SOLUÇÕES EM LIMPEZA PROFISSIONAL",PW/2,ly-4,{align:"center",charSpace:2.5});
+
+    // Título principal — painel branco
+    const ty = splitY + 14;
+    doc.setFont("helvetica","bold"); doc.setFontSize(26);
+    doc.setTextColor(14,48,112);
+    doc.text("Linha Profissional",PW/2, ty,{align:"center"});
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(26);
+    // gradient text trick: fill a colored rect behind it and use white font
+    // instead just use the brand blue-light
+    doc.setTextColor(26,79,160);
+    doc.text("de Limpeza e Higienização",PW/2, ty+12,{align:"center"});
+
+    // Subtítulo
+    doc.setFont("helvetica","normal"); doc.setFontSize(10);
+    doc.setTextColor(90,113,144);
+    doc.text("Produtos de alta performance para cada necessidade",PW/2,ty+24,{align:"center"});
+
+    // Pill de data
     const mes=new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
-    doc.text(`Catálogo Completo  ·  ${mes.charAt(0).toUpperCase()+mes.slice(1)}`,PW/2,py+5.2,{align:"center"});
+    const pillW=76, pillX=(PW-pillW)/2, pillY=ty+32;
+    diagGrad(pillX,pillY,pillW,9,[26,79,160],[59,158,255]);
+    doc.setFont("helvetica","bold"); doc.setFontSize(8);
+    doc.setTextColor(255,255,255);
+    doc.text(`Catálogo  ·  ${mes.charAt(0).toUpperCase()+mes.slice(1)}`,PW/2,pillY+6.2,{align:"center"});
 
+    // Estatísticas
     const cats_u=[...new Set(prods.map(p=>p.categoria))];
-    const sy=py+18;
-    [{v:String(prods.length),l:"produtos"},{v:String(cats_u.length),l:cats_u.length===1?"categoria":"categorias"}]
-      .forEach((item,i,arr)=>{
-        const cx=PW/2+(i-(arr.length-1)/2)*52;
-        doc.setFillColor(...BLUE_PALE);
-        doc.setDrawColor(...GRAY); doc.setLineWidth(.3);
-        doc.roundedRect(cx-22,sy,44,16,3,3,"FD");
-        doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(...BLUE);
-        doc.text(item.v,cx,sy+9,{align:"center"});
-        doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUTED);
-        doc.text(item.l,cx,sy+14,{align:"center"});
-      });
+    const stats=[
+      {v:String(prods.length), l:"produtos"},
+      {v:String(cats_u.length), l:cats_u.length===1?"categoria":"categorias"},
+    ];
+    const stY=pillY+18;
+    stats.forEach((s,i,a)=>{
+      const cx=PW/2+(i-(a.length-1)/2)*56;
+      // card com sombra simulada
+      doc.setFillColor(209,220,232);
+      doc.roundedRect(cx-23,stY+1,46,18,4,4,"F");
+      doc.setFillColor(238,244,255);
+      doc.roundedRect(cx-23,stY,46,18,4,4,"F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(17);
+      doc.setTextColor(26,79,160);
+      doc.text(s.v,cx,stY+11,{align:"center"});
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
+      doc.setTextColor(90,113,144);
+      doc.text(s.l,cx,stY+16.5,{align:"center"});
+    });
 
-    grad(0,PH-14,PW,14);
-    doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+    // Rodapé capa
+    diagGrad(0,PH-16,PW,16,[14,48,112],[59,158,255]);
+    doc.setFont("helvetica","bold"); doc.setFontSize(8);
+    doc.setTextColor(255,255,255);
     doc.text("AB Chemicals  ·  Soluções em Limpeza Profissional  ·  www.abchemicals.com.br",PW/2,PH-5.5,{align:"center"});
 
-    // ── PÁGINAS DE PRODUTO ──
+    // ─── FUNÇÃO HEADER DE PÁGINA ──────────────────────────────
+    function drawPageHeader(logoData){
+      const LOGO_H=26*(1210/1648);
+      // barra topo gradiente diagonal
+      diagGrad(0,0,PW,8,[14,48,112],[26,79,160]);
+      // logo
+      doc.addImage(logoData,"PNG",8,1,22,22*(1210/1648));
+      // título direita
+      doc.setFont("helvetica","bold"); doc.setFontSize(7.5);
+      doc.setTextColor(255,255,255);
+      doc.text("AB Chemicals — Catálogo Completo",PW-10,6,{align:"right"});
+      return 8; // altura do header
+    }
+
+    // ─── PÁGINAS DE PRODUTO ───────────────────────────────────
     const groups={};
     prods.forEach(p=>{ if(!groups[p.categoria]) groups[p.categoria]=[]; groups[p.categoria].push(p); });
 
@@ -827,118 +912,120 @@ async function gerarPDF(){
     for(const [catName,gprods] of Object.entries(groups)){
       doc.addPage(); pgNum++;
 
-      grad(0,0,PW,5);
-      const LOGO_H=26*(1210/1648);
-      doc.addImage(logoData,"PNG",10,6,26,LOGO_H);
-      doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(...MUTED);
-      doc.text("AB Chemicals — Catálogo Completo",PW-12,LOGO_H+3,{align:"right"});
+      // background da página levemente azulado
+      doc.setFillColor(247,250,255);
+      doc.rect(0,0,PW,PH,"F");
+      // faixa lateral esquerda muito sutil
+      diagGrad(0,0,6,PH,[238,244,255],[220,235,255]);
 
-      const shY=LOGO_H+8;
-      const SH=14; // section header height
+      const hdrH=drawPageHeader(logoData);
 
-      // Full-width gradient banner for category
-      for(let i=0;i<24;i++){
-        const t=i/24;
-        doc.setFillColor(
-          Math.round(BLUE_DARK[0]+(BLUE[0]-BLUE_DARK[0])*t),
-          Math.round(BLUE_DARK[1]+(BLUE[1]-BLUE_DARK[1])*t),
-          Math.round(BLUE_DARK[2]+(BLUE[2]-BLUE_DARK[2])*t));
-        doc.rect(12+i*((PW-24)/24),shY,(PW-24)/24+.5,SH,"F");
-      }
+      // Banner de categoria — bold, sem nome duplicado
+      const SH=18;
+      const shY=hdrH+4;
+      diagGrad(0,shY,PW,SH,[10,35,90],[59,158,255]);
+      // ícone de brilho no canto
+      doc.setFillColor(255,255,255); doc.setGState(doc.GState({opacity:.12}));
+      doc.circle(PW-18,shY+SH/2,14,"F");
+      doc.setGState(doc.GState({opacity:1}));
+      // nome
+      doc.setFont("helvetica","bold"); doc.setFontSize(15);
+      doc.setTextColor(255,255,255);
+      doc.text(catName.toUpperCase(),18,shY+12.5,{charSpace:1.5});
+      // contagem
+      doc.setFont("helvetica","normal"); doc.setFontSize(9);
+      doc.setTextColor(180,220,255);
+      doc.text(`${gprods.length} produto${gprods.length>1?"s":""}`,PW-14,shY+12.5,{align:"right"});
 
-      // Category name — large, white, bold
-      doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(255,255,255);
-      doc.text(catName.toUpperCase(), 20, shY+9.5, {charSpace:1.2});
-
-      // Product count pill on right
-      doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(200,225,255);
-      doc.text(`${gprods.length} produto${gprods.length>1?"s":""}`, PW-15, shY+9.5, {align:"right"});
-
-      let cy=shY+SH+5;
-      const MG=12,CW=PW-MG*2;
+      let cy=shY+SH+6;
+      const MG=10, CW=PW-MG*2;
 
       for(const p of gprods){
-        const AH=6.2;
-        const IMG_W=38, IMG_H=28, IMG_PAD=4;
+        const AH=6.8;
+        const IMG_W=40, IMG_H=30, IMG_PAD=4;
         const hasImg=!!p.imagem;
-        // card height: if has image, text is right of image; card height = max(img+pad, text height)
         const attrsH=(p.attrs||[]).length*AH;
-        const textH=8+5+attrsH+8;
-        const ch=hasImg ? Math.max(IMG_H+IMG_PAD*2, textH) : textH;
+        const textH=11+6+attrsH+8;
+        const ch=hasImg ? Math.max(IMG_H+IMG_PAD*2+4, textH) : textH;
 
-        if(cy+ch>PH-20){
+        if(cy+ch>PH-18){
           doc.addPage(); pgNum++;
-          grad(0,0,PW,5);
-          const LOGO_H2=26*(1210/1648);
-          doc.addImage(logoData,"PNG",10,6,26,LOGO_H2);
-          doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(...MUTED);
-          doc.text("AB Chemicals — Catálogo Completo",PW-12,LOGO_H2+3,{align:"right"});
-          cy=LOGO_H2+10;
+          doc.setFillColor(247,250,255); doc.rect(0,0,PW,PH,"F");
+          diagGrad(0,0,6,PH,[238,244,255],[220,235,255]);
+          const hdrH2=drawPageHeader(logoData);
+          cy=hdrH2+8;
         }
 
-        doc.setFillColor(...WHITE);
-        doc.setDrawColor(208,226,245); doc.setLineWidth(.3);
-        doc.roundedRect(MG,cy,CW,ch,3,3,"FD");
+        // card — fundo branco com sombra (offset rect)
+        doc.setFillColor(209,220,232);
+        doc.roundedRect(MG+1,cy+1.5,CW,ch,5,5,"F");
+        doc.setFillColor(255,255,255);
+        doc.setDrawColor(220,232,248); doc.setLineWidth(.3);
+        doc.roundedRect(MG,cy,CW,ch,5,5,"FD");
 
-        // faixa lateral gradiente
-        for(let i=0;i<8;i++){
-          const t=i/8;
-          doc.setFillColor(
-            Math.round(BLUE[0]+(SKY[0]-BLUE[0])*t),
-            Math.round(BLUE[1]+(SKY[1]-BLUE[1])*t),
-            Math.round(BLUE[2]+(SKY[2]-BLUE[2])*t));
-          doc.rect(MG,cy+i*(ch/8),2.2,ch/8+.5,"F");
-        }
+        // Barra superior do card (gradiente azul → sky)
+        const CARD_HDR=9;
+        diagGrad(MG,cy,CW,CARD_HDR,[26,79,160],[59,158,255],16);
+        // arredondamento manual: sobrepor cantos
+        doc.setFillColor(26,79,160);
+        doc.rect(MG,cy+CARD_HDR-2,CW,.5,"F"); // linha de fechamento
 
-        // image (right side) — preserveAspectRatio via contain fit
-        const textX = MG+7;
-        const textW = hasImg ? CW - IMG_W - IMG_PAD*3 - 2 : CW - 10;
+        // Nome do produto no banner
+        doc.setFont("helvetica","bold"); doc.setFontSize(11);
+        doc.setTextColor(255,255,255);
+        doc.text(p.nome,MG+6,cy+CARD_HDR-2);
+
+        // Imagem (direita)
+        const textX=MG+6;
+        const textAreaW=hasImg ? CW-IMG_W-IMG_PAD*2-6 : CW-12;
         if(hasImg){
           try{
-            const imgX = MG+CW-IMG_W-IMG_PAD;
-            const imgY = cy+IMG_PAD;
-            // measure natural dimensions via canvas for correct aspect ratio
-            const naturalSize = await new Promise(res=>{
+            const imgX=MG+CW-IMG_W-IMG_PAD;
+            const imgY=cy+CARD_HDR+IMG_PAD-1;
+            const naturalSize=await new Promise(res=>{
               const im=new Image();
               im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight});
               im.onerror=()=>res({w:1,h:1});
               im.src=p.imagem;
             });
             const ratio=naturalSize.w/naturalSize.h;
-            let dw=IMG_W, dh=IMG_W/ratio;
-            if(dh>IMG_H){ dh=IMG_H; dw=IMG_H*ratio; }
+            let dw=IMG_W,dh=IMG_W/ratio;
+            if(dh>IMG_H){dh=IMG_H;dw=IMG_H*ratio;}
             const dx=imgX+(IMG_W-dw)/2;
             const dy=imgY+(IMG_H-dh)/2;
-            doc.setFillColor(...BLUE_PALE);
-            doc.roundedRect(imgX-2, imgY-2, IMG_W+4, IMG_H+4, 2,2,"F");
-            doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
-          } catch(imgErr){ console.warn("Img error",imgErr); }
+            doc.setFillColor(238,244,255);
+            doc.roundedRect(imgX-1,imgY-1,IMG_W+2,IMG_H+2,3,3,"F");
+            doc.addImage(p.imagem,dx,dy,dw,dh,undefined,"FAST",0);
+          } catch(e){}
         }
 
-        doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.setTextColor(...TEXT);
-        doc.text(p.nome,textX,cy+7);
-
-        doc.setLineWidth(.2); doc.setDrawColor(220,232,245);
-        doc.line(textX,cy+9.5,hasImg ? MG+textW+2 : MG+CW-4,cy+9.5);
-
-        let ay=cy+9.5+5;
+        // Atributos
+        let ay=cy+CARD_HDR+6;
         (p.attrs||[]).forEach(({l:label,v:value})=>{
-          doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.setTextColor(...BLUE);
-          doc.text((label+":").toUpperCase(),textX,ay,{charSpace:.5});
-          doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...TEXT);
-          const lines=doc.splitTextToSize(value, hasImg ? textW-38 : CW-50);
-          doc.text(lines[0],textX+37,ay);
+          // label badge
+          const labelW=doc.getTextWidth((label+":").toUpperCase())*0.55+4;
+          doc.setFillColor(238,244,255);
+          doc.roundedRect(textX,ay-4.5,labelW+2,5.5,1.5,1.5,"F");
+          doc.setFont("helvetica","bold"); doc.setFontSize(6.5);
+          doc.setTextColor(26,79,160);
+          doc.text((label+":").toUpperCase(),textX+1,ay,{charSpace:.3});
+          doc.setFont("helvetica","normal"); doc.setFontSize(9);
+          doc.setTextColor(14,26,46);
+          const lines=doc.splitTextToSize(value, hasImg?textAreaW-28:CW-40);
+          doc.text(lines[0],textX+labelW+5,ay);
           ay+=AH;
         });
-        cy+=ch+5;
+
+        cy+=ch+6;
       }
 
-      doc.setLineWidth(.3); doc.setDrawColor(...GRAY);
-      doc.line(12,PH-12,PW-12,PH-12);
-      doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUTED);
-      doc.text("AB Chemicals — Soluções em Limpeza Profissional",12,PH-7.5);
-      doc.setFont("helvetica","bold"); doc.setTextColor(...BLUE);
-      doc.text(`Página ${pgNum-1}`,PW-12,PH-7.5,{align:"right"});
+      // Rodapé da página
+      diagGrad(0,PH-11,PW,11,[14,48,112],[26,79,160]);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
+      doc.setTextColor(200,220,255);
+      doc.text("AB Chemicals — Soluções em Limpeza Profissional",12,PH-4);
+      doc.setFont("helvetica","bold"); doc.setTextColor(255,255,255);
+      doc.text(`${pgNum-1}`,PW-10,PH-4,{align:"right"});
     }
 
     doc.save("catalogo-ab-chemicals.pdf");
