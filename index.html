@@ -760,272 +760,304 @@ async function gerarPDF(){
       }
     }
 
-    // ─── HELPERS ──────────────────────────────────────────────
-    const logoData="data:image/png;base64,"+LOGO_B64;
+    // ══════════════════════════════════════════════════════
+    // PDF — Estilo AB Chemicals (fiel à landing page)
+    // Paleta: branco, off-white, blue, sky, text, muted
+    // Tipografia: Helvetica (substitui Montserrat/Nunito no jsPDF)
+    // Layout: limpo, respira, sem gradientes pesados
+    // ══════════════════════════════════════════════════════
+    const logoData = "data:image/png;base64," + LOGO_B64;
 
-    // diagonal gradient fill (top-left → bottom-right)
-    function diagGrad(x,y,w,h,c1,c2,steps=30){
-      for(let i=0;i<steps;i++){
-        const t=i/steps;
+    // Cores exatas do site
+    const C = {
+      blue:     [26, 79, 160],
+      blueLt:   [43, 127, 255],
+      blueDk:   [14, 48, 112],
+      bluePale: [238, 244, 255],
+      sky:      [59, 158, 255],
+      skyLt:    [230, 242, 255],
+      white:    [255, 255, 255],
+      offWhite: [247, 250, 255],
+      text:     [14, 26, 46],
+      muted:    [90, 113, 144],
+      gray:     [209, 220, 232],
+    };
+
+    // helper: set fill
+    const F = (c) => doc.setFillColor(...c);
+    const T = (c) => doc.setTextColor(...c);
+    const D = (c) => doc.setDrawColor(...c);
+
+    // thin horizontal gradient bar (site header style)
+    function gradBar(x, y, w, h) {
+      const steps = 30;
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
         doc.setFillColor(
-          Math.round(c1[0]+(c2[0]-c1[0])*t),
-          Math.round(c1[1]+(c2[1]-c1[1])*t),
-          Math.round(c1[2]+(c2[2]-c1[2])*t));
-        // diagonal slice
-        doc.rect(x+i*(w/steps),y,w/steps+.5,h,"F");
+          Math.round(C.blueDk[0] + (C.sky[0] - C.blueDk[0]) * t),
+          Math.round(C.blueDk[1] + (C.sky[1] - C.blueDk[1]) * t),
+          Math.round(C.blueDk[2] + (C.sky[2] - C.blueDk[2]) * t)
+        );
+        doc.rect(x + i * (w / steps), y, w / steps + 0.5, h, "F");
       }
     }
 
-    // wave shape (3 arcs) at bottom of a rect
-    function drawWave(x,y,w,amp,col){
-      doc.setFillColor(...col);
-      const seg=w/60;
-      for(let i=0;i<60;i++){
-        const t1=i/60, t2=(i+1)/60;
-        const y1=y+amp*Math.sin(t1*Math.PI*3);
-        const y2=y+amp*Math.sin(t2*Math.PI*3);
-        const py=Math.min(y1,y2);
-        const ph2=amp*2+Math.abs(y1-y2);
-        doc.rect(x+i*seg,py,seg+.3,ph2,"F");
-      }
+    // ══ CAPA ══════════════════════════════════════════════
+    // Fundo branco puro (como o site)
+    F(C.white); doc.rect(0, 0, PW, PH, "F");
+
+    // Blob decorativo top-right (radial, muito sutil — igual ao hero do site)
+    for (let r = 80; r > 0; r -= 2) {
+      const alpha = (80 - r) / 80 * 0.06;
+      const R = Math.round(255 - alpha * (255 - C.blue[0]));
+      const G = Math.round(255 - alpha * (255 - C.blue[1]));
+      const B = Math.round(255 - alpha * (255 - C.blue[2]));
+      doc.setFillColor(R, G, B);
+      doc.circle(PW + 10, -10, r, "F");
+    }
+    // Blob bottom-left
+    for (let r = 60; r > 0; r -= 2) {
+      const alpha = (60 - r) / 60 * 0.05;
+      const R = Math.round(255 - alpha * (255 - C.sky[0]));
+      const G = Math.round(255 - alpha * (255 - C.sky[1]));
+      const B = Math.round(255 - alpha * (255 - C.sky[2]));
+      doc.setFillColor(R, G, B);
+      doc.circle(-10, PH + 10, r, "F");
     }
 
-    // ─── CAPA REDESENHADA ─────────────────────────────────────
-    // Fundo: gradiente diagonal azul escuro → azul médio
-    diagGrad(0,0,PW,PH,[10,35,90],[30,100,185]);
+    // Barra fina no topo (igual nav do site)
+    gradBar(0, 0, PW, 3);
 
-    // Painel branco no terço inferior (corte diagonal)
-    // Simulado com retângulo branco + triângulo cortado
-    const splitY = PH*0.62;
-    doc.setFillColor(255,255,255);
-    doc.rect(0,splitY,PW,PH-splitY,"F");
+    // Logo — centrada, grande, respira
+    const lw = 90, lh = lw * (1210 / 1648);
+    doc.addImage(logoData, "PNG", (PW - lw) / 2, 28, lw, lh);
 
-    // Faixa diagonal de transição (degradê azul→branco)
-    for(let i=0;i<20;i++){
-      const t=i/20;
-      const r=Math.round(30+(255-30)*t);
-      const g=Math.round(100+(255-100)*t);
-      const b=Math.round(185+(255-185)*t);
-      doc.setFillColor(r,g,b);
-      doc.rect(0,splitY-18+(i*18/20),PW,18/20+.3,"F");
-    }
+    // Linha divisória fina — traço azul sky (hero do site tem isso)
+    const divY = 28 + lh + 12;
+    D(C.sky); doc.setLineWidth(0.4);
+    doc.line(PW / 2 - 30, divY, PW / 2 + 30, divY);
 
-    // Círculos decorativos (brilhos)
-    doc.setFillColor(255,255,255); doc.setGState(doc.GState({opacity:.06}));
-    doc.circle(PW-30,40,55,"F");
-    doc.circle(20,100,40,"F");
-    doc.circle(PW/2,PH*0.45,70,"F");
-    doc.setGState(doc.GState({opacity:1}));
+    // Badge — igual ao hero-badge do site
+    const badgeY = divY + 8;
+    const badgeTxt = "PORTFÓLIO COMPLETO";
+    const badgeW = 58;
+    F(C.bluePale); D(C.gray); doc.setLineWidth(0.3);
+    doc.roundedRect((PW - badgeW) / 2, badgeY, badgeW, 7, 1.5, 1.5, "FD");
+    // dot sky antes do texto
+    F(C.sky); doc.circle((PW - badgeW) / 2 + 5, badgeY + 3.5, 1.2, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(6);
+    T(C.blue);
+    doc.text(badgeTxt, (PW - badgeW) / 2 + 10, badgeY + 5, { charSpace: 2 });
 
-    // Linha fina horizontal brilhante
-    for(let i=0;i<PW;i++){
-      const t=Math.abs(Math.sin(i/PW*Math.PI));
-      doc.setDrawColor(255,255,255);
-      doc.setGState(doc.GState({opacity:t*.35}));
-      doc.setLineWidth(.4);
-      doc.line(i,splitY-1,i+1,splitY-1);
-    }
-    doc.setGState(doc.GState({opacity:1}));
+    // Título principal — Montserrat 900 (weight 900 = bold bold aqui)
+    const titleY = badgeY + 18;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(28);
+    T(C.text);
+    doc.text("Linha Profissional de", PW / 2, titleY, { align: "center" });
+    // Segunda linha em azul (como o <span> do site)
+    T(C.blue);
+    doc.text("Limpeza e Higienização", PW / 2, titleY + 12, { align: "center" });
 
-    // Logo centrada no painel azul
-    const lw=88, lh=lw*(1210/1648);
-    const lx=(PW-lw)/2, ly=PH*0.09;
-    doc.addImage(logoData,"PNG",lx,ly,lw,lh);
+    // Subtítulo — Nunito regular, muted
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+    T(C.muted);
+    doc.text("Soluções profissionais para cada necessidade", PW / 2, titleY + 24, { align: "center" });
 
-    // Tagline acima da logo
-    doc.setFont("helvetica","bold"); doc.setFontSize(7.5);
-    doc.setTextColor(180,215,255);
-    doc.text("SOLUÇÕES EM LIMPEZA PROFISSIONAL",PW/2,ly-4,{align:"center",charSpace:2.5});
+    // Botão primário — igual .btn-primary do site (pill, azul, sombra)
+    const mes = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const btnW = 74, btnH = 10, btnX = (PW - btnW) / 2, btnY = titleY + 33;
+    F(C.blue); doc.roundedRect(btnX, btnY, btnW, btnH, 5, 5, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    T(C.white);
+    doc.text(`Catálogo  ·  ${mes.charAt(0).toUpperCase() + mes.slice(1)}`, PW / 2, btnY + 7, { align: "center" });
 
-    // Título principal — painel branco
-    const ty = splitY + 14;
-    doc.setFont("helvetica","bold"); doc.setFontSize(26);
-    doc.setTextColor(14,48,112);
-    doc.text("Linha Profissional",PW/2, ty,{align:"center"});
-
-    doc.setFont("helvetica","bold"); doc.setFontSize(26);
-    // gradient text trick: fill a colored rect behind it and use white font
-    // instead just use the brand blue-light
-    doc.setTextColor(26,79,160);
-    doc.text("de Limpeza e Higienização",PW/2, ty+12,{align:"center"});
-
-    // Subtítulo
-    doc.setFont("helvetica","normal"); doc.setFontSize(10);
-    doc.setTextColor(90,113,144);
-    doc.text("Produtos de alta performance para cada necessidade",PW/2,ty+24,{align:"center"});
-
-    // Pill de data
-    const mes=new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
-    const pillW=76, pillX=(PW-pillW)/2, pillY=ty+32;
-    diagGrad(pillX,pillY,pillW,9,[26,79,160],[59,158,255]);
-    doc.setFont("helvetica","bold"); doc.setFontSize(8);
-    doc.setTextColor(255,255,255);
-    doc.text(`Catálogo  ·  ${mes.charAt(0).toUpperCase()+mes.slice(1)}`,PW/2,pillY+6.2,{align:"center"});
-
-    // Estatísticas
-    const cats_u=[...new Set(prods.map(p=>p.categoria))];
-    const stats=[
-      {v:String(prods.length), l:"produtos"},
-      {v:String(cats_u.length), l:cats_u.length===1?"categoria":"categorias"},
+    // Stats — cards off-white com sombra leve (igual feature-card do site)
+    const cats_u = [...new Set(prods.map(p => p.categoria))];
+    const stats = [
+      { v: String(prods.length), l: "produtos" },
+      { v: String(cats_u.length), l: cats_u.length === 1 ? "categoria" : "categorias" },
     ];
-    const stY=pillY+18;
-    stats.forEach((s,i,a)=>{
-      const cx=PW/2+(i-(a.length-1)/2)*56;
-      // card com sombra simulada
-      doc.setFillColor(209,220,232);
-      doc.roundedRect(cx-23,stY+1,46,18,4,4,"F");
-      doc.setFillColor(238,244,255);
-      doc.roundedRect(cx-23,stY,46,18,4,4,"F");
-      doc.setFont("helvetica","bold"); doc.setFontSize(17);
-      doc.setTextColor(26,79,160);
-      doc.text(s.v,cx,stY+11,{align:"center"});
-      doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
-      doc.setTextColor(90,113,144);
-      doc.text(s.l,cx,stY+16.5,{align:"center"});
+    const stY = btnY + 18;
+    stats.forEach((s, i, a) => {
+      const cx = PW / 2 + (i - (a.length - 1) / 2) * 58;
+      // sombra
+      doc.setFillColor(220, 228, 240);
+      doc.roundedRect(cx - 24, stY + 1.2, 48, 20, 5, 5, "F");
+      // card
+      F(C.offWhite); D(C.gray); doc.setLineWidth(0.3);
+      doc.roundedRect(cx - 24, stY, 48, 20, 5, 5, "FD");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(18); T(C.blue);
+      doc.text(s.v, cx, stY + 13, { align: "center" });
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
+      doc.text(s.l, cx, stY + 18.5, { align: "center" });
     });
 
-    // Rodapé capa
-    diagGrad(0,PH-16,PW,16,[14,48,112],[59,158,255]);
-    doc.setFont("helvetica","bold"); doc.setFontSize(8);
-    doc.setTextColor(255,255,255);
-    doc.text("AB Chemicals  ·  Soluções em Limpeza Profissional  ·  www.abchemicals.com.br",PW/2,PH-5.5,{align:"center"});
+    // Lista de categorias — pequenos badges (igual pill de categoria do site)
+    const catBadgeY = stY + 28;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(7); T(C.muted);
+    doc.text("Categorias:", PW / 2, catBadgeY, { align: "center" });
+    let bx = 0;
+    const allCats = cats_u;
+    const totalBW = allCats.reduce((sum, c) => sum + doc.getTextWidth(c) * 0.7 + 12, 0) + (allCats.length - 1) * 4;
+    let bStart = (PW - Math.min(totalBW, PW - 20)) / 2;
+    allCats.forEach(cat => {
+      const cw = doc.getTextWidth(cat) * 0.7 + 12;
+      F(C.bluePale); D(C.gray); doc.setLineWidth(0.3);
+      doc.roundedRect(bStart + bx, catBadgeY + 3, cw, 7, 2, 2, "FD");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(6.5); T(C.blue);
+      doc.text(cat, bStart + bx + cw / 2, catBadgeY + 8, { align: "center" });
+      bx += cw + 4;
+    });
 
-    // ─── FUNÇÃO HEADER DE PÁGINA ──────────────────────────────
-    function drawPageHeader(logoData){
-      const LOGO_H=26*(1210/1648);
-      // barra topo gradiente diagonal
-      diagGrad(0,0,PW,8,[14,48,112],[26,79,160]);
-      // logo
-      doc.addImage(logoData,"PNG",8,1,22,22*(1210/1648));
-      // título direita
-      doc.setFont("helvetica","bold"); doc.setFontSize(7.5);
-      doc.setTextColor(255,255,255);
-      doc.text("AB Chemicals — Catálogo Completo",PW-10,6,{align:"right"});
-      return 8; // altura do header
+    // Rodapé da capa — igual ao footer do site
+    F(C.text); doc.rect(0, PH - 18, PW, 18, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.white);
+    doc.text("AB Chemicals", PW / 2, PH - 10, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7); T([150, 170, 200]);
+    doc.text("Soluções em Limpeza Profissional  ·  www.abchemicals.com.br", PW / 2, PH - 5, { align: "center" });
+
+    // ══ PÁGINAS DE PRODUTO ════════════════════════════════
+    const groups = {};
+    prods.forEach(p => { if (!groups[p.categoria]) groups[p.categoria] = []; groups[p.categoria].push(p); });
+
+    function drawContentHeader() {
+      // off-white bg
+      F(C.offWhite); doc.rect(0, 0, PW, PH, "F");
+      // barra azul fina no topo (3mm)
+      gradBar(0, 0, PW, 3);
+      // logo pequena
+      const lhS = 18 * (1210 / 1648);
+      doc.addImage(logoData, "PNG", 10, 4.5, 18, lhS);
+      // título da empresa
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
+      doc.text("AB Chemicals", 31, 9.5);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); T(C.muted);
+      doc.text("Catálogo de Produtos", 31, 14);
+      // número de página do lado direito (preenchido depois)
+      return 3 + lhS + 4; // retorna Y onde começa o conteúdo
     }
 
-    // ─── PÁGINAS DE PRODUTO ───────────────────────────────────
-    const groups={};
-    prods.forEach(p=>{ if(!groups[p.categoria]) groups[p.categoria]=[]; groups[p.categoria].push(p); });
-
-    let pgNum=1;
-    for(const [catName,gprods] of Object.entries(groups)){
+    let pgNum = 1;
+    for (const [catName, gprods] of Object.entries(groups)) {
       doc.addPage(); pgNum++;
 
-      // background da página levemente azulado
-      doc.setFillColor(247,250,255);
-      doc.rect(0,0,PW,PH,"F");
-      // faixa lateral esquerda muito sutil
-      diagGrad(0,0,6,PH,[238,244,255],[220,235,255]);
+      const startY = drawContentHeader();
 
-      const hdrH=drawPageHeader(logoData);
+      // ── Cabeçalho de categoria ──
+      // Fundo azul sólido (não gradiente) — limpo e moderno
+      const SH = 16;
+      F(C.blue); doc.rect(0, startY, PW, SH, "F");
+      // Ponto sky decorativo (igual hero-badge dot)
+      F(C.sky); doc.circle(14, startY + SH / 2, 3, "F");
+      // Nome
+      doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+      T(C.white);
+      doc.text(catName, 22, startY + SH - 4.5);
+      // Contagem — direita, muted branco
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      doc.setTextColor(180, 210, 255);
+      doc.text(`${gprods.length} produto${gprods.length > 1 ? "s" : ""}`, PW - 12, startY + SH - 4.5, { align: "right" });
 
-      // Banner de categoria — bold, sem nome duplicado
-      const SH=18;
-      const shY=hdrH+4;
-      diagGrad(0,shY,PW,SH,[10,35,90],[59,158,255]);
-      // ícone de brilho no canto
-      doc.setFillColor(255,255,255); doc.setGState(doc.GState({opacity:.12}));
-      doc.circle(PW-18,shY+SH/2,14,"F");
-      doc.setGState(doc.GState({opacity:1}));
-      // nome
-      doc.setFont("helvetica","bold"); doc.setFontSize(15);
-      doc.setTextColor(255,255,255);
-      doc.text(catName.toUpperCase(),18,shY+12.5,{charSpace:1.5});
-      // contagem
-      doc.setFont("helvetica","normal"); doc.setFontSize(9);
-      doc.setTextColor(180,220,255);
-      doc.text(`${gprods.length} produto${gprods.length>1?"s":""}`,PW-14,shY+12.5,{align:"right"});
+      let cy = startY + SH + 6;
+      const MG = 11, CW = PW - MG * 2;
 
-      let cy=shY+SH+6;
-      const MG=10, CW=PW-MG*2;
+      for (const p of gprods) {
+        const AH = 7;
+        const IMG_W = 38, IMG_H = 30, IMG_PAD = 5;
+        const hasImg = !!p.imagem;
+        const attrsH = (p.attrs || []).length * AH;
+        const textH = 14 + attrsH + 8;
+        const ch = hasImg ? Math.max(IMG_H + IMG_PAD * 2, textH) : textH;
 
-      for(const p of gprods){
-        const AH=6.8;
-        const IMG_W=40, IMG_H=30, IMG_PAD=4;
-        const hasImg=!!p.imagem;
-        const attrsH=(p.attrs||[]).length*AH;
-        const textH=11+6+attrsH+8;
-        const ch=hasImg ? Math.max(IMG_H+IMG_PAD*2+4, textH) : textH;
+        // quebra de página
+        if (cy + ch > PH - 20) {
+          // rodapé
+          D(C.gray); doc.setLineWidth(0.3);
+          doc.line(MG, PH - 12, PW - MG, PH - 12);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
+          doc.text("AB Chemicals — Soluções em Limpeza Profissional", MG, PH - 7);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
+          doc.text(String(pgNum - 1), PW - MG, PH - 7, { align: "right" });
 
-        if(cy+ch>PH-18){
           doc.addPage(); pgNum++;
-          doc.setFillColor(247,250,255); doc.rect(0,0,PW,PH,"F");
-          diagGrad(0,0,6,PH,[238,244,255],[220,235,255]);
-          const hdrH2=drawPageHeader(logoData);
-          cy=hdrH2+8;
+          const startY2 = drawContentHeader();
+          cy = startY2 + 4;
         }
 
-        // card — fundo branco com sombra (offset rect)
-        doc.setFillColor(209,220,232);
-        doc.roundedRect(MG+1,cy+1.5,CW,ch,5,5,"F");
-        doc.setFillColor(255,255,255);
-        doc.setDrawColor(220,232,248); doc.setLineWidth(.3);
-        doc.roundedRect(MG,cy,CW,ch,5,5,"FD");
+        // ── Card produto ──
+        // Sombra (rect offset)
+        doc.setFillColor(218, 228, 242);
+        doc.roundedRect(MG + 1, cy + 1.5, CW, ch, 6, 6, "F");
+        // Card branco
+        F(C.white); D(C.gray); doc.setLineWidth(0.3);
+        doc.roundedRect(MG, cy, CW, ch, 6, 6, "FD");
 
-        // Barra superior do card (gradiente azul → sky)
-        const CARD_HDR=9;
-        diagGrad(MG,cy,CW,CARD_HDR,[26,79,160],[59,158,255],16);
-        // arredondamento manual: sobrepor cantos
-        doc.setFillColor(26,79,160);
-        doc.rect(MG,cy+CARD_HDR-2,CW,.5,"F"); // linha de fechamento
+        // Faixa azul lateral esquerda (3mm) — igual borda left do product card
+        F(C.blue); doc.rect(MG, cy + 6, 3, ch - 12, "F");
+        // arredondar canto superior e inferior da faixa
+        F(C.blue); doc.roundedRect(MG, cy + 4, 5, 6, 2, 2, "F");
+        F(C.blue); doc.roundedRect(MG, cy + ch - 10, 5, 6, 2, 2, "F");
 
-        // Nome do produto no banner
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.setTextColor(255,255,255);
-        doc.text(p.nome,MG+6,cy+CARD_HDR-2);
+        // Nome do produto
+        const NAMEPAD = MG + 8;
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+        T(C.text);
+        doc.text(p.nome, NAMEPAD, cy + 9);
+
+        // Linha divisória fina sob o nome (sky)
+        D(C.sky); doc.setLineWidth(0.25);
+        const lineEndX = hasImg ? MG + CW - IMG_W - IMG_PAD - 4 : MG + CW - 6;
+        doc.line(NAMEPAD, cy + 11, lineEndX, cy + 11);
 
         // Imagem (direita)
-        const textX=MG+6;
-        const textAreaW=hasImg ? CW-IMG_W-IMG_PAD*2-6 : CW-12;
-        if(hasImg){
-          try{
-            const imgX=MG+CW-IMG_W-IMG_PAD;
-            const imgY=cy+CARD_HDR+IMG_PAD-1;
-            const naturalSize=await new Promise(res=>{
-              const im=new Image();
-              im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight});
-              im.onerror=()=>res({w:1,h:1});
-              im.src=p.imagem;
+        if (hasImg) {
+          try {
+            const imgX = MG + CW - IMG_W - IMG_PAD;
+            const imgY = cy + IMG_PAD;
+            const naturalSize = await new Promise(res => {
+              const im = new Image();
+              im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+              im.onerror = () => res({ w: 1, h: 1 });
+              im.src = p.imagem;
             });
-            const ratio=naturalSize.w/naturalSize.h;
-            let dw=IMG_W,dh=IMG_W/ratio;
-            if(dh>IMG_H){dh=IMG_H;dw=IMG_H*ratio;}
-            const dx=imgX+(IMG_W-dw)/2;
-            const dy=imgY+(IMG_H-dh)/2;
-            doc.setFillColor(238,244,255);
-            doc.roundedRect(imgX-1,imgY-1,IMG_W+2,IMG_H+2,3,3,"F");
-            doc.addImage(p.imagem,dx,dy,dw,dh,undefined,"FAST",0);
-          } catch(e){}
+            const ratio = naturalSize.w / naturalSize.h;
+            let dw = IMG_W, dh = IMG_W / ratio;
+            if (dh > IMG_H) { dh = IMG_H; dw = IMG_H * ratio; }
+            const dx = imgX + (IMG_W - dw) / 2;
+            const dy = imgY + (IMG_H - dh) / 2;
+            F(C.bluePale); D(C.gray); doc.setLineWidth(0.2);
+            doc.roundedRect(imgX - 1, imgY - 1, IMG_W + 2, IMG_H + 2, 3, 3, "FD");
+            doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
+          } catch (e) {}
         }
 
-        // Atributos
-        let ay=cy+CARD_HDR+6;
-        (p.attrs||[]).forEach(({l:label,v:value})=>{
-          // label badge
-          const labelW=doc.getTextWidth((label+":").toUpperCase())*0.55+4;
-          doc.setFillColor(238,244,255);
-          doc.roundedRect(textX,ay-4.5,labelW+2,5.5,1.5,1.5,"F");
-          doc.setFont("helvetica","bold"); doc.setFontSize(6.5);
-          doc.setTextColor(26,79,160);
-          doc.text((label+":").toUpperCase(),textX+1,ay,{charSpace:.3});
-          doc.setFont("helvetica","normal"); doc.setFontSize(9);
-          doc.setTextColor(14,26,46);
-          const lines=doc.splitTextToSize(value, hasImg?textAreaW-28:CW-40);
-          doc.text(lines[0],textX+labelW+5,ay);
-          ay+=AH;
+        // Atributos — label + valor em grid
+        const textAreaW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 16;
+        let ay = cy + 16;
+        (p.attrs || []).forEach(({ l: label, v: value }) => {
+          // Label — cor azul, uppercase, Montserrat bold (like .attr-label)
+          doc.setFont("helvetica", "bold"); doc.setFontSize(6.5);
+          T(C.blue);
+          doc.text(label.toUpperCase(), NAMEPAD, ay);
+          // Valor — Nunito normal, text color
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+          T(C.text);
+          const labelW = 34;
+          const lines = doc.splitTextToSize(value, textAreaW - labelW);
+          doc.text(lines[0], NAMEPAD + labelW, ay);
+          ay += AH;
         });
 
-        cy+=ch+6;
+        cy += ch + 5;
       }
 
-      // Rodapé da página
-      diagGrad(0,PH-11,PW,11,[14,48,112],[26,79,160]);
-      doc.setFont("helvetica","normal"); doc.setFontSize(7.5);
-      doc.setTextColor(200,220,255);
-      doc.text("AB Chemicals — Soluções em Limpeza Profissional",12,PH-4);
-      doc.setFont("helvetica","bold"); doc.setTextColor(255,255,255);
-      doc.text(`${pgNum-1}`,PW-10,PH-4,{align:"right"});
+      // Rodapé da última página de categoria
+      D(C.gray); doc.setLineWidth(0.3);
+      doc.line(MG, PH - 12, PW - MG, PH - 12);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
+      doc.text("AB Chemicals — Soluções em Limpeza Profissional", MG, PH - 7);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
+      doc.text(String(pgNum - 1), PW - MG, PH - 7, { align: "right" });
     }
 
     doc.save("catalogo-ab-chemicals.pdf");
