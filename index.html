@@ -976,7 +976,7 @@ async function gerarPDF(){
     // Categorias — badges maiores e mais visíveis
     const catBadgeY = stY + 32;
     doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); T(C.muted);
-    doc.text("CATEGORIAS", PW / 2, catBadgeY, { align: "center", charSpace: 2 });
+    doc.text("CATEGORIAS", PW / 2, catBadgeY, { align: "center" });
     // calcular largura total
     doc.setFontSize(8.5);
     const catItems = cats_u;
@@ -1079,16 +1079,20 @@ async function gerarPDF(){
       let cy = startY + SH + 7;
       const MG = 11, CW = PW - MG * 2;
 
-      for (const p of gprods) {
-        const AH = 7;
-        const IMG_W = 38, IMG_H = 30, IMG_PAD = 5;
-        const hasImg = !!p.imagem;
-        const attrsH = (p.attrs || []).length * AH;
-        const textH = 14 + attrsH + 8;
-        const ch = hasImg ? Math.max(IMG_H + IMG_PAD * 2, textH) : textH;
+      // Altura fixa por card para garantir 5 por página
+      // Área útil ≈ 297 - startY - SH - 7(gap) - 20(footer) ≈ 218mm / 5 = ~43mm
+      const CARD_H = 43;
+      const GAP    = 2.5;
+      let prodIdx  = 0;
 
-        // quebra de página
-        if (cy + ch > PH - 20) {
+      for (const p of gprods) {
+        const AH = 5.8;
+        const IMG_W = 34, IMG_H = 26, IMG_PAD = 4;
+        const hasImg = !!p.imagem;
+        const ch = CARD_H; // altura fixa
+
+        // quebra de página a cada 5 produtos
+        if (prodIdx > 0 && prodIdx % 5 === 0) {
           // rodapé
           D(C.gray); doc.setLineWidth(0.3);
           doc.line(MG, PH - 12, PW - MG, PH - 12);
@@ -1101,6 +1105,7 @@ async function gerarPDF(){
           const startY2 = drawContentHeader();
           cy = startY2 + 4;
         }
+        prodIdx++;
 
         // ── Card produto ──
         // Sombra (rect offset)
@@ -1115,20 +1120,20 @@ async function gerarPDF(){
 
         // Nome do produto
         const NAMEPAD = MG + 8;
-        doc.setFont("helvetica", "bold"); doc.setFontSize(12.5);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
         T(C.text);
-        doc.text(p.nome, NAMEPAD, cy + 10);
+        doc.text(p.nome, NAMEPAD, cy + 8);
 
         // Linha divisória fina sob o nome (sky)
         D(C.sky); doc.setLineWidth(0.25);
         const lineEndX = hasImg ? MG + CW - IMG_W - IMG_PAD - 4 : MG + CW - 6;
-        doc.line(NAMEPAD, cy + 11, lineEndX, cy + 11);
+        doc.line(NAMEPAD, cy + 10, lineEndX, cy + 10);
 
         // Imagem (direita)
         if (hasImg) {
           try {
             const imgX = MG + CW - IMG_W - IMG_PAD;
-            const imgY = cy + IMG_PAD;
+            const imgY = cy + IMG_PAD - 1;
             const naturalSize = await new Promise(res => {
               const im = new Image();
               im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
@@ -1148,20 +1153,20 @@ async function gerarPDF(){
 
         // Atributos — label + valor em grid
         const textAreaW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 16;
-        let ay = cy + 17;
+        let ay = cy + 15;
         (p.attrs || []).forEach(({ l: label, v: value }) => {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(7);
           T(C.blue);
-          doc.text(label.toUpperCase(), NAMEPAD, ay, { charSpace: 0.5 });
-          doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+          doc.text(label.toUpperCase(), NAMEPAD, ay);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
           T(C.text);
-          const labelW = 36;
+          const labelW = 34;
           const lines = doc.splitTextToSize(value, textAreaW - labelW);
           doc.text(lines[0], NAMEPAD + labelW, ay);
           ay += AH;
         });
 
-        cy += ch + 5;
+        cy += CARD_H + GAP;
       }
 
       // Rodapé da última página de categoria
