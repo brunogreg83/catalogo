@@ -802,39 +802,105 @@ async function gerarPDF(){
       }
     }
 
-    // ══ HELPER: bolhas de fundo ════════════════════════════
+    // ══ HELPER: bolhas estilo landing page AB Chemicals ════
+    // Transparente com borda azul-sky + brilho interno (como .bg-bubble do site)
     function drawBubbles(page) {
-      // 'cover' = capa branca, 'content' = páginas off-white
+      const bg = page === 'cover' ? C.white : C.offWhite;
+
+      // Posições e tamanhos — espelhando o layout do site
       const sets = {
         cover: [
-          { x: PW * 0.92, y: PH * 0.06, r: 64, base: [220, 238, 255] },
-          { x: PW * -0.02, y: PH * 0.30, r: 50, base: [210, 232, 255] },
-          { x: PW * 0.78, y: PH * 0.62, r: 36, base: [225, 241, 255] },
-          { x: PW * 0.18, y: PH * 0.88, r: 45, base: [215, 236, 255] },
-          { x: PW * 0.55, y: PH * 0.48, r: 22, base: [230, 244, 255] },
+          { x: PW*-0.08, y: PH*-0.05, r: 52 },
+          { x: PW*0.55,  y: PH*0.06,  r: 33 },
+          { x: PW*1.02,  y: PH*0.00,  r: 45 },
+          { x: PW*0.88,  y: PH*0.20,  r: 22 },
+          { x: PW*-0.10, y: PH*0.48,  r: 58 },
+          { x: PW*0.28,  y: PH*0.52,  r: 28 },
+          { x: PW*0.82,  y: PH*0.46,  r: 38 },
+          { x: PW*0.60,  y: PH*0.78,  r: 24 },
+          { x: PW*0.10,  y: PH*0.85,  r: 42 },
+          { x: PW*0.95,  y: PH*0.82,  r: 30 },
         ],
         content: [
-          { x: PW * 0.90, y: PH * 0.10, r: 44, base: [210, 230, 250] },
-          { x: PW * 0.04, y: PH * 0.75, r: 36, base: [208, 228, 248] },
-          { x: PW * 0.80, y: PH * 0.60, r: 26, base: [215, 233, 252] },
+          { x: PW*-0.06, y: PH*0.08,  r: 38 },
+          { x: PW*0.90,  y: PH*0.04,  r: 26 },
+          { x: PW*1.04,  y: PH*0.42,  r: 44 },
+          { x: PW*0.20,  y: PH*0.70,  r: 30 },
+          { x: PW*0.72,  y: PH*0.88,  r: 22 },
         ],
       };
-      const bg  = page === 'cover' ? C.white    : C.offWhite;
+
       const list = sets[page] || sets.content;
+
       list.forEach(b => {
-        // 16 anéis do exterior (bg) para o interior (base color)
-        const steps = 16;
-        for (let s = 0; s < steps; s++) {
-          const t = s / steps;          // 0 = borda, 1 = centro
-          const radius = b.r * (1 - t * 0.55);
-          const blend  = t * t;         // easing quadrático — suave
+        // 1. Fundo da bolha = cor de fundo da página (transparente)
+        doc.setFillColor(...bg);
+        doc.circle(b.x, b.y, b.r, "F");
+
+        // 2. Interior levemente azulado (inset glow — rgba(59,158,255,.14))
+        const innerSteps = 10;
+        for (let s = 0; s < innerSteps; s++) {
+          const t  = 1 - s / innerSteps; // 1 no centro → 0 na borda
+          const rr = b.r * (s / innerSteps);
+          const alpha = 0.055 * t * t;
           doc.setFillColor(
-            Math.round(bg[0] + (b.base[0] - bg[0]) * blend),
-            Math.round(bg[1] + (b.base[1] - bg[1]) * blend),
-            Math.round(bg[2] + (b.base[2] - bg[2]) * blend)
+            Math.round(bg[0] * (1-alpha) + 59  * alpha),
+            Math.round(bg[1] * (1-alpha) + 158 * alpha),
+            Math.round(bg[2] * (1-alpha) + 255 * alpha)
           );
-          doc.circle(b.x, b.y, radius, "F");
+          doc.circle(b.x, b.y, rr, "F");
         }
+
+        // 3. Borda azul-sky fina (border: 1.5px solid rgba(59,158,255,.23))
+        const borderSteps = 3;
+        for (let s = 0; s < borderSteps; s++) {
+          const bAlpha = 0.23 * (1 - s / borderSteps);
+          doc.setFillColor(
+            Math.round(bg[0] * (1-bAlpha) + 59  * bAlpha),
+            Math.round(bg[1] * (1-bAlpha) + 158 * bAlpha),
+            Math.round(bg[2] * (1-bAlpha) + 255 * bAlpha)
+          );
+          doc.circle(b.x, b.y, b.r - s * 0.4, "F");
+        }
+        // restaurar fundo no interior da borda
+        doc.setFillColor(...bg);
+        doc.circle(b.x, b.y, b.r - 1.2, "F");
+        // repintar inner glow
+        for (let s = 0; s < innerSteps; s++) {
+          const t  = 1 - s / innerSteps;
+          const rr = (b.r - 1.2) * (s / innerSteps);
+          const alpha = 0.055 * t * t;
+          doc.setFillColor(
+            Math.round(bg[0] * (1-alpha) + 59  * alpha),
+            Math.round(bg[1] * (1-alpha) + 158 * alpha),
+            Math.round(bg[2] * (1-alpha) + 255 * alpha)
+          );
+          doc.circle(b.x, b.y, rr, "F");
+        }
+
+        // 4. Brilho interno superior-esquerdo (::before — radial branco)
+        const shineR  = b.r * 0.55;
+        const shineX  = b.x - b.r * 0.22;
+        const shineY  = b.y - b.r * 0.24;
+        const shSteps = 8;
+        for (let s = 0; s < shSteps; s++) {
+          const t     = s / shSteps;
+          const alpha = 0.42 * (1 - t) * (1 - t); // fade quadrático
+          const sr    = shineR * (1 - t * 0.7);
+          doc.setFillColor(
+            Math.round(bg[0] * (1-alpha) + 255 * alpha),
+            Math.round(bg[1] * (1-alpha) + 255 * alpha),
+            Math.round(bg[2] * (1-alpha) + 255 * alpha)
+          );
+          doc.circle(shineX, shineY, sr, "F");
+        }
+
+        // 5. Ponto de highlight pequeno (::after — dot branco topo-esq)
+        const dotR = b.r * 0.09;
+        const dotX = b.x - b.r * 0.30;
+        const dotY = b.y - b.r * 0.42;
+        doc.setFillColor(255, 255, 255);
+        doc.circle(dotX, dotY, dotR, "F");
       });
     }
 
@@ -860,13 +926,13 @@ async function gerarPDF(){
     const badgeY = divY + 8;
     const badgeTxt = "PORTFÓLIO COMPLETO";
     doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-    const badgeTW = doc.getTextWidth(badgeTxt);
-    const badgeW = badgeTW + 22;
+    // charSpace desloca o texto sem aumentar getTextWidth — usar letra spacing 0 e pill fixo
+    const badgeW = 62;
     const badgeX = (PW - badgeW) / 2;
     F(C.bluePale); D([180, 210, 245]); doc.setLineWidth(0.3);
     doc.roundedRect(badgeX, badgeY, badgeW, 8.5, 4, 4, "FD");
     T(C.blue);
-    doc.text(badgeTxt, PW / 2, badgeY + 6, { align: "center", charSpace: 2 });
+    doc.text(badgeTxt, PW / 2, badgeY + 6, { align: "center" });
 
     // Título principal
     const titleY = badgeY + 20;
@@ -931,12 +997,37 @@ async function gerarPDF(){
       catX += cw + 5;
     });
 
-    // Rodapé
-    F(C.text); doc.rect(0, PH - 18, PW, 18, "F");
+    // Rodapé da capa
+    F(C.text); doc.rect(0, PH - 20, PW, 20, "F");
+
+    // Esquerda: nome + site
     doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.white);
-    doc.text("AB Chemicals", PW / 2, PH - 10, { align: "center" });
+    doc.text("AB Chemicals", 14, PH - 12);
     doc.setFont("helvetica", "normal"); doc.setFontSize(7); T([150, 170, 200]);
-    doc.text("Soluções em Limpeza Profissional  ·  www.abchemicals.com.br", PW / 2, PH - 4.5, { align: "center" });
+    doc.text("www.abchemicals.com.br", 14, PH - 5.5);
+
+    // Direita: Instagram @abchemicals
+    // Ícone Instagram — quadrado arredondado vetorial
+    const igX = PW - 52, igY = PH - 17, igS = 10;
+    const igR = 2.8; // corner radius
+    // fundo gradiente instagram (laranja-rosa-roxo) simulado em 3 camadas
+    doc.setFillColor(193, 53, 132);   // rosa
+    doc.roundedRect(igX, igY, igS, igS, igR, igR, "F");
+    // borda branca fina
+    doc.setDrawColor(255,255,255); doc.setLineWidth(0.5);
+    doc.roundedRect(igX + 0.6, igY + 0.6, igS - 1.2, igS - 1.2, igR - 0.5, igR - 0.5, "S");
+    // círculo central (lente)
+    doc.setDrawColor(255,255,255); doc.setLineWidth(0.55);
+    doc.circle(igX + igS/2, igY + igS/2, 2.5, "S");
+    // ponto do flash (canto superior direito)
+    doc.setFillColor(255,255,255);
+    doc.circle(igX + igS - 2.2, igY + 2.2, 0.7, "F");
+
+    // Handle @abchemicals
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); T(C.white);
+    doc.text("@abchemicals", igX + igS + 3, igY + 6.5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); T([150, 170, 200]);
+    doc.text("Instagram", igX + igS + 3, igY + 10.5);
 
     // ══ PÁGINAS DE PRODUTO ════════════════════════════════
     const groups = {};
@@ -971,23 +1062,12 @@ async function gerarPDF(){
       F(C.blueDk); doc.rect(0, startY, PW, SH, "F");
       // faixa sky brilhante na base
       F(C.sky); doc.rect(0, startY + SH - 2.5, PW, 2.5, "F");
-      // bolha decorativa dentro do banner (direita)
-      for (let step = 0; step < 8; step++) {
-        const t = step / 8;
-        doc.setFillColor(
-          Math.round(C.sky[0] + (C.blueDk[0] - C.sky[0]) * t),
-          Math.round(C.sky[1] + (C.blueDk[1] - C.sky[1]) * t),
-          Math.round(C.sky[2] + (C.blueDk[2] - C.sky[2]) * t)
-        );
-        doc.circle(PW - 20, startY + SH / 2, 18 * (1 - t * 0.5), "F");
-      }
-      // ícone dot sky
       // dot sky
       F(C.sky); doc.circle(15, startY + SH / 2, 4, "F");
       // nome categoria
       doc.setFont("helvetica", "bold"); doc.setFontSize(19);
       T(C.white);
-      doc.text(catName.toUpperCase(), 26, startY + SH - 5, { charSpace: 1.5 });
+      doc.text(catName.toUpperCase(), 26, startY + SH / 2 + 3.5, { charSpace: 1.5 });
       // contagem — pill à direita
       doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
       const cntTxt = `${gprods.length} produto${gprods.length > 1 ? "s" : ""}`;
@@ -1030,11 +1110,8 @@ async function gerarPDF(){
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
         doc.roundedRect(MG, cy, CW, ch, 6, 6, "FD");
 
-        // Faixa azul lateral esquerda (3mm) — igual borda left do product card
-        F(C.blue); doc.rect(MG, cy + 6, 3, ch - 12, "F");
-        // arredondar canto superior e inferior da faixa
-        F(C.blue); doc.roundedRect(MG, cy + 4, 5, 6, 2, 2, "F");
-        F(C.blue); doc.roundedRect(MG, cy + ch - 10, 5, 6, 2, 2, "F");
+        // Linha lateral esquerda — fina, elegante, igual border-left do site
+        F(C.sky); doc.roundedRect(MG, cy + 4, 2, ch - 8, 1, 1, "F");
 
         // Nome do produto
         const NAMEPAD = MG + 8;
