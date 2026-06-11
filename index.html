@@ -279,6 +279,15 @@ document.addEventListener("DOMContentLoaded", () => {
   .toast.success{background:var(--green)}
   .toast.error{background:var(--red)}
 
+  /* PREÇO / CHECKBOX PDF */
+  .preco-pdf-row{display:flex;align-items:center;gap:10px;
+    background:var(--blue-pale);border:1.5px solid rgba(26,79,160,.15);
+    border-radius:10px;padding:10px 14px;margin-top:4px}
+  .preco-pdf-row label{font-size:.82rem;color:var(--blue);font-weight:600;cursor:pointer;
+    display:flex;align-items:center;gap:8px;user-select:none}
+  .preco-pdf-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+  .preco-pdf-row .preco-hint{font-size:.72rem;color:var(--text-muted);margin-left:auto}
+
   /* FICHA TÉCNICA */
   .ficha-upload-area{
     border:2px dashed var(--gray);border-radius:12px;
@@ -403,6 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <option value="Lavanderia">Lavanderia</option>
             <option value="Institucional">Institucional</option>
             <option value="Lava Car">Lava Car</option>
+            <option value="Descartáveis">Descartáveis</option>
           </select>
         </div>
       </div>
@@ -414,6 +424,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="form-group">
           <label>Diluição</label>
           <input type="text" id="fDiluicao" placeholder="Ex: 1:10, Puro"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Preço (opcional)</label>
+          <input type="text" id="fPreco" placeholder="Ex: R$ 49,90"/>
+        </div>
+        <div class="form-group" style="align-self:flex-end">
         </div>
       </div>
       <div class="form-row full">
@@ -513,6 +531,13 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="preview-strip">
       <h3>📄 Gerar Catálogo PDF</h3>
       <p>PDF com o visual do site AB Chemicals, pronto para enviar a clientes ou imprimir.</p>
+      <div class="preco-pdf-row">
+        <label>
+          <input type="checkbox" id="chkPreco"/>
+          Exibir preços no PDF
+        </label>
+        <span class="preco-hint">Quando marcado, inclui o preço de todos os produtos</span>
+      </div>
       <button class="btn-pdf" id="btnGerar" onclick="gerarPDF()" disabled>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Gerar e Baixar PDF
@@ -562,7 +587,7 @@ function validarForm(){
 }
 
 function limparForm(){
-  ["fId","fNome","fEmbalagem","fDiluicao","fAplicacao","fDescricao"]
+  ["fId","fNome","fEmbalagem","fDiluicao","fPreco","fAplicacao","fDescricao"]
     .forEach(id=>{ document.getElementById(id).value=""; });
   document.getElementById("fCategoria").value="";
   document.getElementById("extraFields").innerHTML="";
@@ -696,6 +721,7 @@ async function salvarProduto(){
   if(!nome||!categoria) return;
 
   const attrs=[];
+  const preco = document.getElementById("fPreco").value.trim();
   const mp={"fEmbalagem":"Embalagem","fDiluicao":"Diluição","fAplicacao":"Aplicação","fDescricao":"Descrição"};
   Object.entries(mp).forEach(([fid,label])=>{
     const v=document.getElementById(fid).value.trim();
@@ -713,10 +739,10 @@ async function salvarProduto(){
 
   try{
     if(editandoId){
-      await window._fb.update(editandoId,{nome,categoria,attrs,imagem:imagemBase64||null,ficha:fichaBase64||null,fichaNome:fichaNomeArq||null});
+      await window._fb.update(editandoId,{nome,categoria,attrs,preco:preco||null,imagem:imagemBase64||null,ficha:fichaBase64||null,fichaNome:fichaNomeArq||null});
       showToast("Produto atualizado!");
     } else {
-      await window._fb.add({nome,categoria,attrs,imagem:imagemBase64||null,ficha:fichaBase64||null,fichaNome:fichaNomeArq||null});
+      await window._fb.add({nome,categoria,attrs,preco:preco||null,imagem:imagemBase64||null,ficha:fichaBase64||null,fichaNome:fichaNomeArq||null});
       showToast("Produto salvo no Firebase!");
     }
     showSaving();
@@ -748,6 +774,7 @@ function editarProduto(id){
   document.getElementById("fId").value=id;
   document.getElementById("fNome").value=p.nome;
   document.getElementById("fCategoria").value=p.categoria;
+  document.getElementById("fPreco").value = p.preco || "";
   ["fEmbalagem","fDiluicao","fAplicacao","fDescricao"].forEach(fid=>{
     document.getElementById(fid).value="";
   });
@@ -1107,6 +1134,7 @@ async function gerarPDF(){
     doc.text(`Catálogo  ·  ${mes.charAt(0).toUpperCase() + mes.slice(1)}`, PW / 2, btnY + 7.8, { align: "center" });
 
     // Stats
+    const mostrarPreco = document.getElementById("chkPreco").checked;
     const cats_u = [...new Set(prods.map(p => p.categoria))];
     const stats = [
       { v: String(prods.length), l: "produtos" },
@@ -1185,7 +1213,7 @@ async function gerarPDF(){
     }
 
     // Ordem fixa — Institucional sempre por último
-    const CAT_ORDER = ["Piso", "Cozinha", "Lavanderia", "Lava Car", "Institucional"];
+    const CAT_ORDER = ["Piso", "Cozinha", "Lavanderia", "Lava Car", "Descartáveis", "Institucional"];
     const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
       const ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
       if (ia === -1 && ib === -1) return a.localeCompare(b);
@@ -1266,6 +1294,14 @@ async function gerarPDF(){
         doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
         T(C.text);
         doc.text(p.nome, NAMEPAD, cy + 8);
+
+        // Preço (direita do nome, se checkbox marcado)
+        if (mostrarPreco && p.preco) {
+          doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+          doc.setTextColor(26, 130, 60); // verde
+          const precoX = hasImg ? MG + CW - IMG_W - IMG_PAD - 6 : MG + CW - 8;
+          doc.text(p.preco, precoX, cy + 8, { align: "right" });
+        }
 
         // Linha divisória fina sob o nome (sky)
         D(C.sky); doc.setLineWidth(0.25);
