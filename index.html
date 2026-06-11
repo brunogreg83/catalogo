@@ -1272,11 +1272,13 @@ async function gerarPDF(){
         const lineEndX = hasImg ? MG + CW - IMG_W - IMG_PAD - 4 : MG + CW - 6;
         doc.line(NAMEPAD, cy + 10, lineEndX, cy + 10);
 
-        // Imagem (direita)
+        // Imagem (direita) — centralizada verticalmente no card
         if (hasImg) {
           try {
             const imgX = MG + CW - IMG_W - IMG_PAD;
-            const imgY = cy + IMG_PAD - 1;
+            // Centralizar verticalmente: (card height - img box height) / 2
+            const imgBoxH = IMG_H + 2;
+            const imgY = cy + (ch - imgBoxH) / 2;
             const naturalSize = await new Promise(res => {
               const im = new Image();
               im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
@@ -1287,9 +1289,9 @@ async function gerarPDF(){
             let dw = IMG_W, dh = IMG_W / ratio;
             if (dh > IMG_H) { dh = IMG_H; dw = IMG_H * ratio; }
             const dx = imgX + (IMG_W - dw) / 2;
-            const dy = imgY + (IMG_H - dh) / 2;
+            const dy = imgY + 1 + (IMG_H - dh) / 2;
             F(C.bluePale); D(C.gray); doc.setLineWidth(0.2);
-            doc.roundedRect(imgX - 1, imgY - 1, IMG_W + 2, IMG_H + 2, 3, 3, "FD");
+            doc.roundedRect(imgX - 1, imgY, IMG_W + 2, imgBoxH, 3, 3, "FD");
             doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
           } catch (e) {}
         }
@@ -1308,6 +1310,23 @@ async function gerarPDF(){
           doc.text(lines[0], NAMEPAD + labelW, ay);
           ay += AH;
         });
+
+        // Ficha técnica — ícone + link clicável
+        if (p.ficha) {
+          const fichaLabel = "FICHA TÉCNICA";
+          const fichaY = ay + 1;
+          // ícone PDF
+          doc.setFont("helvetica", "bold"); doc.setFontSize(6.5);
+          T(C.blue);
+          doc.text("📄", NAMEPAD, fichaY);
+          doc.text(fichaLabel, NAMEPAD + 5, fichaY);
+          // sublinhado estilo link
+          const fichaLabelW = doc.getTextWidth(fichaLabel);
+          D(C.blue); doc.setLineWidth(0.2);
+          doc.line(NAMEPAD + 5, fichaY + 0.5, NAMEPAD + 5 + fichaLabelW, fichaY + 0.5);
+          // link clicável — abre/baixa o PDF embutido
+          doc.link(NAMEPAD + 5, fichaY - 3.5, fichaLabelW, 5, { url: p.ficha });
+        }
 
         cy += CARD_H + GAP;
       }
