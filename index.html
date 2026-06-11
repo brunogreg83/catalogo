@@ -279,6 +279,14 @@ document.addEventListener("DOMContentLoaded", () => {
   .toast.success{background:var(--green)}
   .toast.error{background:var(--red)}
 
+  /* PREÇO NO CARD */
+  .product-card-preco{display:inline-flex;align-items:center;gap:5px;
+    margin-bottom:8px;background:#edfaf2;border:1.5px solid #b6e8ca;
+    border-radius:8px;padding:4px 10px;font-size:.82rem;font-weight:700;
+    color:#1a7a3c;font-family:"Montserrat",sans-serif}
+  .product-card-preco.consultar{background:var(--blue-pale);
+    border-color:rgba(26,79,160,.2);color:var(--blue)}
+
   /* PREÇO / CHECKBOX PDF */
   .preco-pdf-row{display:flex;align-items:center;gap:10px;
     background:var(--blue-pale);border:1.5px solid rgba(26,79,160,.15);
@@ -862,6 +870,12 @@ window.renderLista = function(){
           ${p.imagem?`<div class="prod-img-wrap"><img class="prod-img" src="${p.imagem}" alt="${p.nome}"/></div>`:""}
           <div class="product-card-body">
             <div class="product-card-name">${p.nome}</div>
+            <div class="product-card-preco ${p.preco?'':'consultar'}">
+              ${p.preco
+                ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${p.preco}`
+                : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Consultar`
+              }
+            </div>
             ${(p.attrs||[]).length?`<div class="product-attrs">
               ${(p.attrs||[]).map(({l,v})=>`
                 <span class="attr-label">${l}</span>
