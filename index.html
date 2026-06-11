@@ -1311,21 +1311,30 @@ async function gerarPDF(){
           ay += AH;
         });
 
-        // Ficha técnica — ícone + link clicável
+        // Ficha técnica — ícone vetorial + link clicável
         if (p.ficha) {
-          const fichaLabel = "FICHA TÉCNICA";
+          const fichaLabel = "FICHA TECNICA";
           const fichaY = ay + 1;
-          // ícone PDF
           doc.setFont("helvetica", "bold"); doc.setFontSize(6.5);
           T(C.blue);
-          doc.text("📄", NAMEPAD, fichaY);
-          doc.text(fichaLabel, NAMEPAD + 5, fichaY);
-          // sublinhado estilo link
+          // Ícone PDF vetorial (rect + dobra + linhas)
+          const ix = NAMEPAD, iy = fichaY - 4, iw = 4.5, ih = 5.5, fold = 1.5;
+          F(C.bluePale); D(C.blue); doc.setLineWidth(0.25);
+          doc.rect(ix, iy, iw, ih, "FD");
+          // dobra canto superior direito
+          doc.setFillColor(...C.blue);
+          doc.triangle(ix+iw-fold, iy, ix+iw, iy+fold, ix+iw-fold, iy+fold, "F");
+          // linhas de texto simuladas
+          D(C.blue); doc.setLineWidth(0.3);
+          doc.line(ix+0.8, iy+2.2, ix+iw-0.8, iy+2.2);
+          doc.line(ix+0.8, iy+3.3, ix+iw-0.8, iy+3.3);
+          doc.line(ix+0.8, iy+4.4, ix+iw-1.8, iy+4.4);
+          // texto
+          doc.text(fichaLabel, NAMEPAD + 6, fichaY);
           const fichaLabelW = doc.getTextWidth(fichaLabel);
           D(C.blue); doc.setLineWidth(0.2);
-          doc.line(NAMEPAD + 5, fichaY + 0.5, NAMEPAD + 5 + fichaLabelW, fichaY + 0.5);
-          // link clicável — abre/baixa o PDF embutido
-          doc.link(NAMEPAD + 5, fichaY - 3.5, fichaLabelW, 5, { url: p.ficha });
+          doc.line(NAMEPAD + 6, fichaY + 0.5, NAMEPAD + 6 + fichaLabelW, fichaY + 0.5);
+          doc.link(NAMEPAD + 6, fichaY - 3.5, fichaLabelW, 5, { url: p.ficha });
         }
 
         cy += CARD_H + GAP;
