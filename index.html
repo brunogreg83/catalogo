@@ -1126,14 +1126,19 @@ async function gerarPDF(){
     doc.text("Limpeza e Higienização", PW / 2, titleY + 16, { align: "center" });
 
     // "CATÁLOGO" em grande destaque — texto enorme, sem pill
-    const catY = titleY + 32;
+    const catY = titleY + 40;
     doc.setFont("helvetica", "bold"); doc.setFontSize(46);
     T(C.blueDk);
-    doc.text("CATÁLOGO", PW / 2, catY, { align: "center", charSpace: 6 });
+    // charSpace não é considerado por align:center — desenhar manualmente centralizado
+    const catTxt = "CATÁLOGO";
+    const catCS = 6;
+    const catBaseW = doc.getTextWidth(catTxt);
+    const catTotalW = catBaseW + catCS * (catTxt.length - 1);
+    doc.text(catTxt, (PW - catTotalW) / 2, catY, { charSpace: catCS });
     // linha decorativa sky abaixo
     D(C.sky); doc.setLineWidth(1.2);
-    doc.line(PW / 2 - 32, catY + 6, PW / 2 + 32, catY + 6);
-    const btnY = catY + 6; // referência para próximos elementos
+    doc.line(PW / 2 - 32, catY + 9, PW / 2 + 32, catY + 9);
+    const btnY = catY + 9; // referência para próximos elementos
 
     // Stats
     const mostrarPreco = document.getElementById("chkPreco").checked;
