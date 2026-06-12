@@ -13,6 +13,9 @@ import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc,
   doc, onSnapshot, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadString, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8oIu9BJBmM2QMQHPKqIEegYtUny1uDJE",
@@ -23,9 +26,10 @@ const firebaseConfig = {
   appId: "1:946056802788:web:a9d30721fb48a7a85f57f1"
 };
 
-const app  = initializeApp(firebaseConfig);
-const db   = getFirestore(app);
-const COL  = "produtos";
+const app     = initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+const storage = getStorage(app);
+const COL     = "produtos";
 
 // ── Expõe funções ao escopo global ──────────────────────
 window._fb = {
@@ -37,6 +41,22 @@ window._fb = {
   },
   async remove(id){
     return await deleteDoc(doc(db, COL, id));
+  },
+  async uploadFicha(base64DataUrl, fileName, prevPath){
+    // remove arquivo anterior, se existir
+    if(prevPath){
+      try{ await deleteObject(ref(storage, prevPath)); }catch(e){ /* ignora se não existir */ }
+    }
+    const path = `fichas/${Date.now()}_${fileName}`;
+    const sref = ref(storage, path);
+    // uploadString espera o data URL completo (com prefixo data:application/pdf;base64,...)
+    await uploadString(sref, base64DataUrl, "data_url");
+    const url = await getDownloadURL(sref);
+    return { url, path };
+  },
+  async deleteFicha(path){
+    if(!path) return;
+    try{ await deleteObject(ref(storage, path)); }catch(e){ /* ignora */ }
   },
   listen(cb){
     const q = query(collection(db, COL), orderBy("criadoEm","asc"));
@@ -601,7 +621,7 @@ function limparForm(){
   document.getElementById("extraFields").innerHTML="";
   camposExtra=[];
   resetImagemForm();
-  resetFichaForm();
+  resetFichaState();
   editandoId=null;
   const btnAdd = document.getElementById("btnAdd");
   btnAdd.innerHTML=`
@@ -639,8 +659,11 @@ function removeCampoExtra(id){
 
 // ── IMAGE HANDLING ───────────────────────────────────────
 let imagemBase64 = null;
-let fichaBase64 = null;    // ficha técnica PDF
+let fichaBase64 = null;    // ficha técnica PDF (novo upload pendente)
 let fichaNomeArq = null;   // nome original do arquivo
+let fichaUrlAtual = null;  // URL pública já salva (Storage)
+let fichaPathAtual = null; // path no Storage (para substituir/remover)
+let fichaAlterada = false; // true se usuário trocou/removeu a ficha
 
 function handleImageSelect(input){
   const file = input.files[0];
@@ -700,6 +723,7 @@ function handleFichaSelect(input){
   reader.onload = e => {
     fichaBase64 = e.target.result;
     fichaNomeArq = file.name;
+    fichaAlterada = true;
     document.getElementById('fichaPrompt').style.display = 'none';
     document.getElementById('fichaNomeTexto').textContent = file.name;
     document.getElementById('fichaNome').style.display = 'flex';
@@ -710,6 +734,7 @@ function handleFichaSelect(input){
 
 function removerFicha(e){
   e.stopPropagation();
+  fichaAlterada = true; // usuário pediu remoção explícita
   resetFichaForm();
 }
 
@@ -720,6 +745,16 @@ function resetFichaForm(){
   document.getElementById('fichaPrompt').style.display = 'block';
   document.getElementById('fichaNome').style.display = 'none';
   document.getElementById('fichaUploadArea').classList.remove('has-file');
+}
+
+// reset completo de estado (usado por limparForm — não marca como alterado)
+function resetFichaState(){
+  fichaBase64 = null;
+  fichaNomeArq = null;
+  fichaUrlAtual = null;
+  fichaPathAtual = null;
+  fichaAlterada = false;
+  resetFichaForm();
 }
 
 // ── SAVE TO FIRESTORE ─────────────────────────────────────
@@ -746,11 +781,38 @@ async function salvarProduto(){
   btn.innerHTML=`<span class="spinner"></span> <span>Salvando…</span>`;
 
   try{
+    // ── Ficha técnica: upload para Storage (gera URL pública, necessária para links no PDF) ──
+    let fichaUrl = fichaUrlAtual;
+    let fichaPath = fichaPathAtual;
+    let fichaNomeFinal = fichaNomeArq;
+
+    if(fichaAlterada){
+      if(fichaBase64){
+        // novo arquivo selecionado → upload (substitui o anterior, se houver)
+        btn.innerHTML=`<span class="spinner"></span> <span>Enviando ficha…</span>`;
+        const up = await window._fb.uploadFicha(fichaBase64, fichaNomeArq, fichaPathAtual);
+        fichaUrl = up.url;
+        fichaPath = up.path;
+      } else {
+        // usuário removeu a ficha existente
+        if(fichaPathAtual) await window._fb.deleteFicha(fichaPathAtual);
+        fichaUrl = null;
+        fichaPath = null;
+        fichaNomeFinal = null;
+      }
+      btn.innerHTML=`<span class="spinner"></span> <span>Salvando…</span>`;
+    }
+
+    const payload = {
+      nome,categoria,attrs,preco:preco||null,imagem:imagemBase64||null,
+      ficha:fichaUrl||null, fichaPath:fichaPath||null, fichaNome:fichaNomeFinal||null
+    };
+
     if(editandoId){
-      await window._fb.update(editandoId,{nome,categoria,attrs,preco:preco||null,imagem:imagemBase64||null,ficha:fichaBase64||null,fichaNome:fichaNomeArq||null});
+      await window._fb.update(editandoId,payload);
       showToast("Produto atualizado!");
     } else {
-      await window._fb.add({nome,categoria,attrs,preco:preco||null,imagem:imagemBase64||null,ficha:fichaBase64||null,fichaNome:fichaNomeArq||null});
+      await window._fb.add(payload);
       showToast("Produto salvo no Firebase!");
     }
     showSaving();
@@ -804,16 +866,17 @@ function editarProduto(id){
     }
   });
 
-  // load existing ficha técnica
+  // load existing ficha técnica (URL do Storage)
+  resetFichaState();
   if(p.ficha){
-    fichaBase64 = p.ficha;
+    fichaUrlAtual = p.ficha;
+    fichaPathAtual = p.fichaPath || null;
     fichaNomeArq = p.fichaNome || 'ficha.pdf';
+    fichaAlterada = false;
     document.getElementById('fichaPrompt').style.display = 'none';
     document.getElementById('fichaNomeTexto').textContent = fichaNomeArq;
     document.getElementById('fichaNome').style.display = 'flex';
     document.getElementById('fichaUploadArea').classList.add('has-file');
-  } else {
-    resetFichaForm();
   }
 
   // load existing image
