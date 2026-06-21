@@ -1254,24 +1254,42 @@ async function gerarPDF(){
     const catBadgeY = stY + 32;
     doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); T(C.muted);
     doc.text("CATEGORIAS", PW / 2, catBadgeY, { align: "center" });
-    // calcular largura total
-    doc.setFontSize(8.5);
+
+    // Badges com quebra automática em múltiplas linhas (respeita margens)
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
     const catItems = cats_u;
-    const catPadH = 5, catPadW = 10;
-    const catH = 9;
-    let totalCW = catItems.reduce((sum, c) => sum + doc.getTextWidth(c) + catPadW * 2, 0) + (catItems.length - 1) * 5;
-    let catX = (PW - Math.min(totalCW, PW - 24)) / 2;
+    const catPadW = 10, catH = 9, catGap = 5, lineGap = 4;
+    const maxRowW = PW - 24; // margem de 12mm de cada lado
+
+    // 1. calcular largura de cada badge e organizar em linhas
+    const rows = [];
+    let currentRow = [];
+    let currentRowW = 0;
     catItems.forEach(cat => {
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
       const cw = doc.getTextWidth(cat) + catPadW * 2;
-      // sombra
-      doc.setFillColor(200, 218, 240);
-      doc.roundedRect(catX + 0.8, catBadgeY + 4.8, cw, catH, 3, 3, "F");
-      // badge fundo azul
-      F(C.blue); doc.roundedRect(catX, catBadgeY + 4, cw, catH, 3, 3, "F");
-      T(C.white);
-      doc.text(cat, catX + cw / 2, catBadgeY + 4 + catH/2 + 1.3, { align: "center" });
-      catX += cw + 5;
+      const addedW = currentRow.length ? cw + catGap : cw;
+      if (currentRowW + addedW > maxRowW && currentRow.length) {
+        rows.push({ items: currentRow, width: currentRowW });
+        currentRow = [];
+        currentRowW = 0;
+      }
+      currentRow.push({ cat, cw });
+      currentRowW += currentRow.length > 1 ? cw + catGap : cw;
+    });
+    if (currentRow.length) rows.push({ items: currentRow, width: currentRowW });
+
+    // 2. desenhar cada linha centralizada
+    rows.forEach((row, rowIdx) => {
+      let catX = (PW - row.width) / 2;
+      const rowY = catBadgeY + 4 + rowIdx * (catH + lineGap);
+      row.items.forEach(({ cat, cw }) => {
+        doc.setFillColor(200, 218, 240);
+        doc.roundedRect(catX + 0.8, rowY + 0.8, cw, catH, 3, 3, "F");
+        F(C.blue); doc.roundedRect(catX, rowY, cw, catH, 3, 3, "F");
+        T(C.white);
+        doc.text(cat, catX + cw / 2, rowY + catH/2 + 1.3, { align: "center" });
+        catX += cw + catGap;
+      });
     });
 
     // Rodapé da capa
