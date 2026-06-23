@@ -1354,37 +1354,29 @@ async function gerarPDF(){
         const p = gprods[gi2];
         const col = prodIdx % COLS;
 
-        // Ao iniciar nova linha, avançar cy pela maior altura do par anterior
-        if (col === 0 && prodIdx > 0) {
-          cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
-          rowHeights = [0, 0];
-        }
-
-        // Calcular altura deste card + par (para decidir quebra com margem correta)
+        // Calcular altura deste card + par
         const ch = calcCardH(p, CW);
-        rowHeights[col] = ch;
-        // Se col=0, pré-calcular col=1 para saber a altura real da linha
         let pairH = ch;
         if (col === 0 && gi2 + 1 < gprods.length) {
           pairH = Math.max(ch, calcCardH(gprods[gi2 + 1], CW));
         }
 
-        // Quebra de página a cada 6 produtos (3 linhas × 2 colunas)
-        if (col === 0 && prodIdx > 0 && prodIdx % 6 === 0) {
-          drawFooter();
-          doc.addPage(); pgNum++;
-          const startY2 = drawContentHeader();
-          cy = startY2 + 4;
+        // Nova linha (col=0): verificar quebra ANTES de avançar cy
+        if (col === 0 && prodIdx > 0) {
+          // Quebra a cada 6 produtos OU se não couber na página
+          if (prodIdx % 6 === 0 || cy + Math.max(rowHeights[0], rowHeights[1]) + GAP + pairH > PH - FOOTER_H) {
+            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+            drawFooter();
+            doc.addPage(); pgNum++;
+            const startY2 = drawContentHeader();
+            cy = startY2 + 4;
+          } else {
+            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+          }
           rowHeights = [0, 0];
         }
-        // Segurança: nunca ultrapassar o rodapé
-        if (col === 0 && cy + pairH > PH - FOOTER_H) {
-          drawFooter();
-          doc.addPage(); pgNum++;
-          const startY3 = drawContentHeader();
-          cy = startY3 + 4;
-          rowHeights = [0, 0];
-        }
+
+        rowHeights[col] = ch;
 
         const cx   = MG + col * (CW + HGAP);
         const cardY = cy;
