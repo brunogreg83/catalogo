@@ -1350,41 +1350,42 @@ async function gerarPDF(){
         return h;
       }
 
-      // ── Render cards: 2 colunas, quebra dinâmica por altura ──
+      // ── Render cards: 2 colunas, 2 linhas por página (4 cards/pág), altura dinâmica ──
       // Pré-calcular alturas de todos os cards
       const allHeights = gprods.map(p => calcCardH(p, CW));
 
-      // Agrupar em linhas de 2, verificar se cada linha cabe antes de desenhar
+      // Agrupar em páginas de 4 (2 linhas × 2 colunas)
+      // Dentro de cada par de linhas, nivelar as alturas das linhas
+      // Linha 0 (cards 0-1): altura = max(h[0], h[1])
+      // Linha 1 (cards 2-3): altura = max(h[2], h[3])
+      // As 2 linhas dividem igualmente a área disponível (mas respeitam conteúdo)
+      const availH = PH - FOOTER_H - cy; // espaço disponível na primeira página
       let gi2 = 0;
+
       while (gi2 < gprods.length) {
-        const p   = gprods[gi2];
-        const col = gi2 % COLS;
+        // Início de grupo de 4 cards: calcular altura das 2 linhas deste grupo
+        const idxA  = gi2;                                              // linha 0, col 0
+        const idxB  = gi2 + 1 < gprods.length ? gi2 + 1 : -1;         // linha 0, col 1
+        const idxC  = gi2 + 2 < gprods.length ? gi2 + 2 : -1;         // linha 1, col 0
+        const idxD  = gi2 + 3 < gprods.length ? gi2 + 3 : -1;         // linha 1, col 1
 
-        // Início de nova linha (col === 0): verificar se a linha cabe na página atual
-        if (col === 0) {
-          // altura da linha = max dos dois cards (ou só o esquerdo se for o último)
-          const hLeft  = allHeights[gi2];
-          const hRight = gi2 + 1 < gprods.length ? allHeights[gi2 + 1] : 0;
-          const lineH  = Math.max(hLeft, hRight);
+        const hLine0 = Math.max(allHeights[idxA], idxB >= 0 ? allHeights[idxB] : 0);
+        const hLine1 = idxC >= 0
+          ? Math.max(allHeights[idxC], idxD >= 0 ? allHeights[idxD] : 0)
+          : 0;
+        const groupH = hLine0 + (hLine1 > 0 ? GAP + hLine1 : 0);
 
-          if (cy + lineH > PH - FOOTER_H) {
-            // Linha não cabe — quebrar página agora
-            drawFooter();
-            doc.addPage(); pgNum++;
-            const sY = drawContentHeader();
-            cy = sY + 4;
-            rowHeights = [0, 0];
-          }
-          rowHeights = [0, 0];
+        // Se o grupo não cabe, quebrar página
+        if (cy + groupH > PH - FOOTER_H) {
+          drawFooter();
+          doc.addPage(); pgNum++;
+          const sY = drawContentHeader();
+          cy = sY + 4;
         }
 
-        const ch    = allHeights[gi2];
-        rowHeights[col] = ch;
-        const cx    = MG + col * (CW + HGAP);
-        const cardY = cy;
-        const hasImg = !!p.imagem;
-
-        // ── Desenhar card ──
+        // ── Função interna: desenhar um card ──
+        function drawCard(p, cx, cardY, ch) {
+          const hasImg = !!p.imagem;
         // Sombra
         doc.setFillColor(218, 228, 242);
         doc.roundedRect(cx + 1, cardY + 1.5, CW, ch, 5, 5, "F");
@@ -1514,18 +1515,35 @@ async function gerarPDF(){
           doc.link(PAD, ay - 4.5, ficW, 7, { url: p.ficha });
         }
 
-        // Avançar cy ao completar uma linha (col=1) ou ao ser o último produto
-        if (col === COLS - 1 || gi2 === gprods.length - 1) {
-          cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
-          rowHeights = [0, 0];
+        } // fecha drawCard
+
+        // Desenhar linha 0 (cards 0-1 do grupo)
+        for (let lineSlot = 0; lineSlot < 2; lineSlot++) {
+          const idx = gi2 + lineSlot;
+          if (idx >= gprods.length) break;
+          drawCard(gprods[idx], MG + lineSlot * (CW + HGAP), cy, hLine0);
         }
 
-        gi2++;
-      }
+        // Avançar cy para a linha 1
+        cy += hLine0 + GAP;
+
+        // Desenhar linha 1 (cards 2-3 do grupo), se existir
+        if (idxC >= 0) {
+          for (let lineSlot = 0; lineSlot < 2; lineSlot++) {
+            const idx = gi2 + 2 + lineSlot;
+            if (idx >= gprods.length) break;
+            drawCard(gprods[idx], MG + lineSlot * (CW + HGAP), cy, hLine1);
+          }
+          cy += hLine1 + GAP;
+        }
+
+        // Avançar para o próximo grupo de 4
+        gi2 += 4;
+      } // fim while gi2 < gprods.length
 
       // Rodapé da última página de categoria
       drawFooter();
-    }
+    } // fim for sortedEntries
 
     doc.save("catalogo-ab-chemicals.pdf");
     showToast("PDF gerado com sucesso!");
