@@ -1350,37 +1350,37 @@ async function gerarPDF(){
         return h;
       }
 
+      // ── Render cards: 2 colunas, 3 linhas por página (6 cards/pág) ──
+      let rowCount = 0;   // linhas desenhadas na página atual
+
       for (let gi2 = 0; gi2 < gprods.length; gi2++) {
-        const p = gprods[gi2];
-        const col = prodIdx % COLS;
+        const p   = gprods[gi2];
+        const col = gi2 % COLS;
 
-        // Calcular altura deste card + par
-        const ch = calcCardH(p, CW);
-        let pairH = ch;
-        if (col === 0 && gi2 + 1 < gprods.length) {
-          pairH = Math.max(ch, calcCardH(gprods[gi2 + 1], CW));
-        }
-
-        // Nova linha (col=0): verificar quebra ANTES de avançar cy
-        if (col === 0 && gi2 > 0) {
-          const prevRowH = Math.max(rowHeights[0], rowHeights[1]) + GAP;
-          // gi2 é o índice do card atual; gi2/2 = número da linha atual (0-based)
-          // Quebrar a cada 3 linhas (= 6 cards) ou se não couber
-          const lineIdx = Math.floor(gi2 / 2); // linha atual (0=primeira)
-          if (lineIdx % 3 === 0 || cy + prevRowH + pairH > PH - FOOTER_H) {
-            cy += prevRowH;
+        // Início de nova linha
+        if (col === 0) {
+          // Avançar cy se não for o primeiro card da página
+          if (rowCount > 0) {
+            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+            rowHeights = [0, 0];
+          }
+          // Quebrar se já usamos 3 linhas nesta página
+          if (rowCount === 3) {
             drawFooter();
             doc.addPage(); pgNum++;
-            const startY2 = drawContentHeader();
-            cy = startY2 + 4;
-          } else {
-            cy += prevRowH;
+            const sY = drawContentHeader();
+            cy = sY + 4;
+            rowCount = 0;
+            rowHeights = [0, 0];
           }
-          rowHeights = [0, 0];
+          rowCount++;
         }
 
+        const ch    = calcCardH(p, CW);
         rowHeights[col] = ch;
-
+        const cx    = MG + col * (CW + HGAP);
+        const cardY = cy;
+        const hasImg = !!p.imagem;
         const cx   = MG + col * (CW + HGAP);
         const cardY = cy;
         const hasImg = !!p.imagem;
@@ -1515,7 +1515,6 @@ async function gerarPDF(){
           doc.link(PAD, ay - 4.5, ficW, 7, { url: p.ficha });
         }
 
-        prodIdx++;
       }
 
       // Rodapé da última página de categoria
