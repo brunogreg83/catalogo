@@ -266,15 +266,22 @@ document.addEventListener("DOMContentLoaded", () => {
     border:1.5px solid rgba(26,79,160,.1);box-shadow:0 3px 14px rgba(26,79,160,.06);
     transition:transform .2s,box-shadow .2s,border-color .2s}
   .product-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,79,160,.13);border-color:var(--blue-light)}
+
+  /* Header: faixa azul com nome + ações */
   .product-card-header{background:linear-gradient(135deg,var(--blue),var(--sky));
-    padding:9px 14px;display:flex;align-items:center;justify-content:space-between}
+    padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .product-card-header-name{font-family:"Montserrat",sans-serif;font-size:.85rem;
+    font-weight:800;color:#fff;flex:1;overflow:hidden;
+    white-space:nowrap;text-overflow:ellipsis}
   .product-card-cat{font-size:.62rem;font-weight:700;letter-spacing:1.8px;
     text-transform:uppercase;color:rgba(255,255,255,.85)}
-  .card-actions{display:flex;gap:5px}
+  .card-actions{display:flex;gap:5px;flex-shrink:0}
   .card-actions button{background:rgba(255,255,255,.2);border:none;border-radius:6px;
     color:#fff;cursor:pointer;padding:4px 9px;font-size:.72rem;font-weight:700;
     transition:background .15s}
   .card-actions button:hover{background:rgba(255,255,255,.35)}
+
+  /* Foto do produto */
   .product-card-body{padding:13px 15px 14px}
   .product-card-name{font-family:"Montserrat",sans-serif;font-size:.92rem;
     font-weight:800;color:var(--text);margin-bottom:9px}
@@ -951,7 +958,7 @@ window.renderLista = function(){
       ${ps.map(p=>`
         <div class="product-card" style="margin-bottom:9px">
           <div class="product-card-header">
-            <span class="product-card-cat">${p.categoria}</span>
+            <span class="product-card-header-name">${p.nome}</span>
             <div class="card-actions">
               <button onclick="editarProduto('${p.id}')">✏️ Editar</button>
               <button onclick="removerProduto('${p.id}')">🗑 Remover</button>
@@ -959,7 +966,6 @@ window.renderLista = function(){
           </div>
           ${p.imagem?`<div class="prod-img-wrap"><img class="prod-img" src="${p.imagem}" alt="${p.nome}"/></div>`:""}
           <div class="product-card-body">
-            <div class="product-card-name">${p.nome}</div>
             <div class="product-card-preco ${p.preco?'':'consultar'}">
               ${p.preco
                 ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${p.preco}`
@@ -1369,54 +1375,88 @@ async function gerarPDF(){
       const MG = 11, HGAP = 4;
       const COLS = 2;
       const CW = (PW - MG * 2 - HGAP) / COLS;
-      const CARD_H = 44;
       const GAP = 3;
-      const FOOTER_H = 18; // espaço reservado para rodapé
+      const FOOTER_H = 18;
+      const AH = 5.6;
+      const IMG_W = 26, IMG_H = 20, IMG_PAD = 3;
       let prodIdx = 0;
+      // Guarda altura calculada da linha atual (par de cards)
+      let rowHeights = [0, 0];
+
+      // ── Calcula altura necessária para um card (sem desenhar) ──
+      function calcCardH(p, cw) {
+        const hasImg = !!p.imagem;
+        const textAreaW = hasImg ? cw - IMG_W - IMG_PAD - 10 : cw - 12;
+        const maxNomeW  = hasImg ? cw - IMG_W - IMG_PAD - 10 : cw - 12;
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+        const nomeLines = doc.splitTextToSize(p.nome, maxNomeW);
+        const nomeRows  = Math.min(nomeLines.length, 3);
+        const nomeOffset = (nomeRows - 1) * 4.5;
+        // base: topo(7) + nome + linha(2) + pad(5)
+        let h = 7 + nomeOffset + 2 + 5;
+        (p.attrs || []).forEach(({ l: label, v: value }) => {
+          doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
+          const lines = doc.splitTextToSize(value, textAreaW - 28);
+          h += AH * Math.min(lines.length, 3);
+        });
+        if (p.ficha) h += AH + 2;
+        if (mostrarPreco && p.preco) {} // preço fica na mesma linha do nome
+        // padding inferior
+        h += 5;
+        // mínimo para imagem
+        if (hasImg) h = Math.max(h, IMG_H + IMG_PAD * 2 + 6);
+        return h;
+      }
 
       for (const p of gprods) {
         const col = prodIdx % COLS;
 
-        // Nova linha: avançar cy
-        if (col === 0 && prodIdx > 0) cy += CARD_H + GAP;
+        // Ao iniciar nova linha, avançar cy pela maior altura do par anterior
+        if (col === 0 && prodIdx > 0) {
+          cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+          rowHeights = [0, 0];
+        }
 
-        // Verificar quebra de página (só na coluna esquerda)
-        if (col === 0 && cy + CARD_H > PH - FOOTER_H) {
+        // Calcular altura deste card
+        const ch = calcCardH(p, CW);
+        rowHeights[col] = ch;
+
+        // Quebra de página (coluna esquerda): usar altura máxima estimada do par
+        if (col === 0 && cy + ch > PH - FOOTER_H) {
           drawFooter();
           doc.addPage(); pgNum++;
           const startY2 = drawContentHeader();
           cy = startY2 + 4;
+          rowHeights = [0, 0];
         }
 
-        const cx = MG + col * (CW + HGAP);
+        const cx   = MG + col * (CW + HGAP);
         const cardY = cy;
-
-        const AH = 5.6;
-        const IMG_W = 26, IMG_H = 20, IMG_PAD = 3;
         const hasImg = !!p.imagem;
         const NAMEPAD = cx + 6;
         const maxNomeW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 12;
 
-        // Sombra + card
+        // ── Desenhar card ──
+        // Sombra + fundo
         doc.setFillColor(218, 228, 242);
-        doc.roundedRect(cx + 1, cardY + 1.5, CW, CARD_H, 5, 5, "F");
+        doc.roundedRect(cx + 1, cardY + 1.5, CW, ch, 5, 5, "F");
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
-        doc.roundedRect(cx, cardY, CW, CARD_H, 5, 5, "FD");
-        F(C.sky); doc.roundedRect(cx, cardY + 3, 2, CARD_H - 6, 1, 1, "F");
+        doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
+        F(C.sky); doc.roundedRect(cx, cardY + 3, 2, ch - 6, 1, 1, "F");
 
-        // Nome — até 2 linhas
+        // Nome
         doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.text);
         const nomeLines = doc.splitTextToSize(p.nome, maxNomeW);
-        const nomeH = Math.min(nomeLines.length, 2);
-        nomeLines.slice(0, 2).forEach((ln, i) => doc.text(ln, NAMEPAD, cardY + 7 + i * 4.5));
-        const nomeOffset = nomeH > 1 ? 4.5 : 0;
+        const nomeRows  = Math.min(nomeLines.length, 3);
+        nomeLines.slice(0, 3).forEach((ln, i) => doc.text(ln, NAMEPAD, cardY + 7 + i * 4.5));
+        const nomeOffset = (nomeRows - 1) * 4.5;
 
         // Preço
         if (mostrarPreco && p.preco) {
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
           doc.setTextColor(26, 130, 60);
           const precoX = hasImg ? cx + CW - IMG_W - IMG_PAD - 4 : cx + CW - 5;
-          doc.text(p.preco, precoX, cardY + 7 + nomeOffset, { align: "right" });
+          doc.text(p.preco, precoX, cardY + 7, { align: "right" });
         }
 
         // Linha sob nome
@@ -1424,12 +1464,12 @@ async function gerarPDF(){
         const lineEndX = hasImg ? cx + CW - IMG_W - IMG_PAD - 3 : cx + CW - 5;
         doc.line(NAMEPAD, cardY + 9 + nomeOffset, lineEndX, cardY + 9 + nomeOffset);
 
-        // Imagem
+        // Imagem — centralizada verticalmente no card
         if (hasImg) {
           try {
-            const imgX = cx + CW - IMG_W - IMG_PAD;
+            const imgX    = cx + CW - IMG_W - IMG_PAD;
             const imgBoxH = IMG_H + 2;
-            const imgY = cardY + (CARD_H - imgBoxH) / 2;
+            const imgY    = cardY + (ch - imgBoxH) / 2;
             const naturalSize = await new Promise(res => {
               const im = new Image();
               im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
@@ -1439,11 +1479,9 @@ async function gerarPDF(){
             const ratio = naturalSize.w / naturalSize.h;
             let dw = IMG_W, dh = IMG_W / ratio;
             if (dh > IMG_H) { dh = IMG_H; dw = IMG_H * ratio; }
-            const dx = imgX + (IMG_W - dw) / 2;
-            const dy = imgY + 1 + (IMG_H - dh) / 2;
             F(C.bluePale); D(C.gray); doc.setLineWidth(0.2);
             doc.roundedRect(imgX - 1, imgY, IMG_W + 2, imgBoxH, 3, 3, "FD");
-            doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
+            doc.addImage(p.imagem, imgX + (IMG_W - dw) / 2, imgY + 1 + (IMG_H - dh) / 2, dw, dh, undefined, "FAST", 0);
           } catch (e) {}
         }
 
@@ -1451,15 +1489,12 @@ async function gerarPDF(){
         const textAreaW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 12;
         let ay = cardY + 14 + nomeOffset;
         (p.attrs || []).forEach(({ l: label, v: value }) => {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(6);
-          T(C.blue);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(6); T(C.blue);
           doc.text(label.toUpperCase(), NAMEPAD, ay);
-          doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-          T(C.text);
-          const labelW = 28;
-          const lines = doc.splitTextToSize(value, textAreaW - labelW);
-          const visLines = lines.slice(0, 2);
-          visLines.forEach((ln, i) => doc.text(ln, NAMEPAD + labelW, ay + i * 4.5));
+          doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); T(C.text);
+          const lines = doc.splitTextToSize(value, textAreaW - 28);
+          const visLines = lines.slice(0, 3);
+          visLines.forEach((ln, i) => doc.text(ln, NAMEPAD + 28, ay + i * 4.5));
           ay += AH * visLines.length;
         });
 
@@ -1467,8 +1502,7 @@ async function gerarPDF(){
         if (p.ficha) {
           const fichaLabel = "FICHA TECNICA";
           const fichaY = ay + 1;
-          doc.setFont("helvetica", "bold"); doc.setFontSize(6);
-          T(C.blue);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(6); T(C.blue);
           const ix = NAMEPAD, iy = fichaY - 3.5, iw = 3.8, ih = 4.8, fold = 1.2;
           F(C.bluePale); D(C.blue); doc.setLineWidth(0.2);
           doc.rect(ix, iy, iw, ih, "FD");
