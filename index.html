@@ -1302,6 +1302,16 @@ async function gerarPDF(){
     const groups = {};
     prods.forEach(p => { if (!groups[p.categoria]) groups[p.categoria] = []; groups[p.categoria].push(p); });
 
+    function drawFooter() {
+      D(C.gray); doc.setLineWidth(0.3);
+      doc.line(MG_F, PH - 12, PW - MG_F, PH - 12);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
+      doc.text("AB Chemicals — Soluções em Limpeza Profissional", MG_F, PH - 7);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
+      doc.text(String(pgNum - 1), PW - MG_F, PH - 7, { align: "right" });
+    }
+    const MG_F = 11; // margem do rodapé (igual MG dos cards)
+
     function drawContentHeader() {
       // fundo off-white
       F(C.offWhite); doc.rect(0, 0, PW, PH, "F");
@@ -1356,107 +1366,43 @@ async function gerarPDF(){
       doc.text(cntTxt, PW - 12 - cntW / 2, startY + SH / 2 + 1.5, { align: "center" });
 
       let cy = startY + SH + 7;
-      const MG = 11, HGAP = 4; // margem e gap horizontal entre colunas
+      const MG = 11, HGAP = 4;
       const COLS = 2;
-      const CW = (PW - MG * 2 - HGAP) / COLS; // largura de cada card
-      const CARD_H = 38; // altura menor para 2 colunas
-      const GAP = 3;     // gap vertical entre linhas
-      const CARDS_PER_PAGE = 10; // 5 linhas × 2 colunas
+      const CW = (PW - MG * 2 - HGAP) / COLS;
+      const CARD_H = 38;
+      const GAP = 3;
+      const FOOTER_H = 18; // espaço reservado para rodapé
       let prodIdx = 0;
 
-      function drawCard(p, cx, cy, cw) {
-        const AH = 5.2;
-        const IMG_W = 26, IMG_H = 20, IMG_PAD = 3;
-        const hasImg = !!p.imagem;
-        const ch = CARD_H;
-
-        // Sombra
-        doc.setFillColor(218, 228, 242);
-        doc.roundedRect(cx + 1, cy + 1.5, cw, ch, 5, 5, "F");
-        // Card branco
-        F(C.white); D(C.gray); doc.setLineWidth(0.3);
-        doc.roundedRect(cx, cy, cw, ch, 5, 5, "FD");
-        // Linha lateral
-        F(C.sky); doc.roundedRect(cx, cy + 3, 2, ch - 6, 1, 1, "F");
-
-        const NAMEPAD = cx + 6;
-        const maxNomeW = hasImg ? cw - IMG_W - IMG_PAD - 10 : cw - 12;
-
-        // Nome
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.text);
-        const nomeLines = doc.splitTextToSize(p.nome, maxNomeW);
-        doc.text(nomeLines[0], NAMEPAD, cy + 7);
-
-        // Preço
-        if (mostrarPreco && p.preco) {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          doc.setTextColor(26, 130, 60);
-          const precoX = hasImg ? cx + cw - IMG_W - IMG_PAD - 4 : cx + cw - 5;
-          doc.text(p.preco, precoX, cy + 7, { align: "right" });
-        }
-
-        // Linha sob nome
-        D(C.sky); doc.setLineWidth(0.2);
-        const lineEndX = hasImg ? cx + cw - IMG_W - IMG_PAD - 3 : cx + cw - 5;
-        doc.line(NAMEPAD, cy + 9, lineEndX, cy + 9);
-
-        // Imagem
-        if (hasImg) {
-          try {
-            const imgX = cx + cw - IMG_W - IMG_PAD;
-            const imgBoxH = IMG_H + 2;
-            const imgY = cy + (ch - imgBoxH) / 2;
-            const naturalSize = (() => new Promise(res => {
-              const im = new Image();
-              im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
-              im.onerror = () => res({ w: 1, h: 1 });
-              im.src = p.imagem;
-            }))();
-            // sync-like: usar dimensões armazenadas na promessa abaixo
-            return { p, cx, cy, cw, imgX, imgY, imgBoxH, IMG_W, IMG_H, NAMEPAD, AH, hasImg, IMG_PAD };
-          } catch(e) {}
-        }
-        return { p, cx, cy, cw, imgX: null, imgY: null, imgBoxH: null, IMG_W, IMG_H, NAMEPAD, AH, hasImg, IMG_PAD };
-      }
-
-      // Renderização async com imagens
       for (const p of gprods) {
-        // quebra de página a cada CARDS_PER_PAGE
-        if (prodIdx > 0 && prodIdx % CARDS_PER_PAGE === 0) {
-          D(C.gray); doc.setLineWidth(0.3);
-          doc.line(MG, PH - 12, PW - MG, PH - 12);
-          doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
-          doc.text("AB Chemicals — Soluções em Limpeza Profissional", MG, PH - 7);
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
-          doc.text(String(pgNum - 1), PW - MG, PH - 7, { align: "right" });
+        const col = prodIdx % COLS;
+
+        // Nova linha: avançar cy
+        if (col === 0 && prodIdx > 0) cy += CARD_H + GAP;
+
+        // Verificar quebra de página (só na coluna esquerda)
+        if (col === 0 && cy + CARD_H > PH - FOOTER_H) {
+          drawFooter();
           doc.addPage(); pgNum++;
           const startY2 = drawContentHeader();
           cy = startY2 + 4;
         }
 
-        const col = prodIdx % COLS; // 0 = esquerda, 1 = direita
-        const row = Math.floor((prodIdx % CARDS_PER_PAGE) / COLS);
         const cx = MG + col * (CW + HGAP);
-        const cardY = cy + row * (CARD_H + GAP);
-
-        // Se primeira coluna de uma nova linha, atualiza cy referência
-        if (col === 0 && prodIdx > 0 && prodIdx % COLS === 0) {
-          // cy já foi definido pela linha anterior
-        }
+        const cardY = cy;
 
         const AH = 5.2;
         const IMG_W = 26, IMG_H = 20, IMG_PAD = 3;
         const hasImg = !!p.imagem;
-        const ch = CARD_H;
         const NAMEPAD = cx + 6;
         const maxNomeW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 12;
 
         // Sombra + card
         doc.setFillColor(218, 228, 242);
-        doc.roundedRect(cx + 1, cardY + 1.5, CW, ch, 5, 5, "F");
+        doc.roundedRect(cx + 1, cardY + 1.5, CW, CARD_H, 5, 5, "F");
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
-        doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
-        F(C.sky); doc.roundedRect(cx, cardY + 3, 2, ch - 6, 1, 1, "F");
+        doc.roundedRect(cx, cardY, CW, CARD_H, 5, 5, "FD");
+        F(C.sky); doc.roundedRect(cx, cardY + 3, 2, CARD_H - 6, 1, 1, "F");
 
         // Nome
         doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.text);
@@ -1481,7 +1427,7 @@ async function gerarPDF(){
           try {
             const imgX = cx + CW - IMG_W - IMG_PAD;
             const imgBoxH = IMG_H + 2;
-            const imgY = cardY + (ch - imgBoxH) / 2;
+            const imgY = cardY + (CARD_H - imgBoxH) / 2;
             const naturalSize = await new Promise(res => {
               const im = new Image();
               im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
@@ -1536,21 +1482,11 @@ async function gerarPDF(){
           doc.link(NAMEPAD + 5, fichaY - 3, fichaLabelW, 4.5, { url: p.ficha });
         }
 
-        // Avançar cy somente ao final de cada linha (coluna direita ou último produto)
-        if (col === COLS - 1 || prodIdx === gprods.length - 1) {
-          cy = cardY + CARD_H + GAP;
-        }
-
         prodIdx++;
       }
 
       // Rodapé da última página de categoria
-      D(C.gray); doc.setLineWidth(0.3);
-      doc.line(MG, PH - 12, PW - MG, PH - 12);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(7); T(C.muted);
-      doc.text("AB Chemicals — Soluções em Limpeza Profissional", MG, PH - 7);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8); T(C.blue);
-      doc.text(String(pgNum - 1), PW - MG, PH - 7, { align: "right" });
+      drawFooter();
     }
 
     doc.save("catalogo-ab-chemicals.pdf");
