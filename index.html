@@ -110,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let first = true;
   window._fb.listen(docs => {
     window.produtos = docs;
-    renderLista();
-    updateSidebar();
+    if(typeof window.renderLista === 'function') window.renderLista();
+    if(typeof window.updateSidebar === 'function') window.updateSidebar();
     if(first){
       first = false;
       document.getElementById("dbStatus").className = "db-status ok";
