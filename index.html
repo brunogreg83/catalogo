@@ -1207,11 +1207,11 @@ async function gerarPDF(){
 
     // Logo — centrada, grande
     const lw = 96, lh = lw * (1210 / 1648);
-    doc.addImage(logoData, "PNG", (PW - lw) / 2, 42, lw, lh);
+    doc.addImage(logoData, "PNG", (PW - lw) / 2, 62, lw, lh);
 
     // ── CAPA: layout centralizado ───────────────────────────
     const cats_u = [...new Set(prods.map(p => p.categoria))];
-    const logoBottom = 42 + lh;
+    const logoBottom = 62 + lh;
 
     // CATALOGO — logo abaixo da logo, espaço reduzido
     doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
@@ -1341,7 +1341,8 @@ async function gerarPDF(){
         h += 7; // padding após foto (igual ao draw)
         (p.attrs || []).forEach(({ l, v }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-          h += 8.5 * Math.min(doc.splitTextToSize(v, textAreaW - 28).length, 3);
+          const vLines = doc.splitTextToSize(v, textAreaW - 28).length;
+          h += 5.0 * Math.min(vLines, 3) + 1.5; // LINE_H * linhas + gap entre campos
         });
         if (p.ficha) h += AH + 3;
         h += 4; // padding inferior
@@ -1486,7 +1487,7 @@ async function gerarPDF(){
         const PAD = cx + 5;
         const VALX = cx + 30; // coluna do valor
         const VALAW = CW - 35; // largura disponível para o valor
-        const ROW_H = 7.2; // altura por linha
+        const ROW_H = 6.5; // altura por linha (campo + gap entre campos)
         let ay = bodyY;
 
         (p.attrs || []).forEach(({ l: label, v: value }) => {
@@ -1498,8 +1499,9 @@ async function gerarPDF(){
           doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); T(C.text);
           const lines = doc.splitTextToSize(value, VALAW);
           const visLines = lines.slice(0, 3);
-          visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * ROW_H));
-          ay += ROW_H * visLines.length + 1;
+          const LINE_H = 5.0; // espaçamento entre linhas do mesmo campo
+          visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * LINE_H));
+          ay += LINE_H * visLines.length + 1.5; // +1.5 entre campos diferentes
         });
 
         // ── Ficha Técnica — pill azul clicável ──
