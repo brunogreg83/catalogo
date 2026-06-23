@@ -1369,16 +1369,16 @@ async function gerarPDF(){
           pairH = Math.max(ch, calcCardH(gprods[gi2 + 1], CW));
         }
 
-        // Quebra de página — verificar antes de desenhar qualquer coluna
-        if (col === 0 && cy + pairH > PH - FOOTER_H) {
+        // Quebra de página a cada 6 produtos (3 linhas × 2 colunas)
+        if (col === 0 && prodIdx > 0 && prodIdx % 6 === 0) {
           drawFooter();
           doc.addPage(); pgNum++;
           const startY2 = drawContentHeader();
           cy = startY2 + 4;
           rowHeights = [0, 0];
         }
-        // Segurança extra: col=1 não pode ultrapassar a página
-        if (col === 1 && cy + ch > PH - FOOTER_H) {
+        // Segurança: nunca ultrapassar o rodapé
+        if (col === 0 && cy + pairH > PH - FOOTER_H) {
           drawFooter();
           doc.addPage(); pgNum++;
           const startY3 = drawContentHeader();
