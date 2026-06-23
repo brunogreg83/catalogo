@@ -1219,7 +1219,8 @@ async function gerarPDF(){
     const catCS2  = 7;
     const catBW2  = doc.getTextWidth(catTxt2);
     const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
-    const catY2   = logoBottom + 22;
+    const availH3 = (PH - 20) - logoBottom;
+    const catY2   = logoBottom + (availH3 - 37) / 2 + 14;
     doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
 
     // 2026 — abaixo de CATÁLOGO, menor, mesma família visual
