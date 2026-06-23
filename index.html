@@ -104,18 +104,40 @@ window._fb = {
   }
 };
 
-// Aguarda tudo carregar (incluindo scripts do body) antes de iniciar o listener
-window.addEventListener("load", () => {
-  document.getElementById("dbStatus").innerHTML = "&#9679; Conectando…";
+// Inicia listener assim que o DOM estiver pronto
+// (as funções renderLista/updateSidebar são definidas em script normal no body,
+//  por isso usamos retry caso cheguem antes delas estarem disponíveis)
+document.addEventListener("DOMContentLoaded", () => {
+  const elStatus = document.getElementById("dbStatus");
+  if(elStatus) elStatus.innerHTML = "&#9679; Conectando…";
+
+  // buffer de docs recebidos antes das funções de render estarem prontas
+  let pendingDocs = null;
+
+  function tryRender(docs) {
+    if(typeof window.renderLista === 'function' && typeof window.updateSidebar === 'function') {
+      window.produtos = docs;
+      window.renderLista();
+      window.updateSidebar();
+      pendingDocs = null;
+    } else {
+      pendingDocs = docs;
+    }
+  }
+
+  // polling leve: aguarda até 3s pelas funções de render
+  const poll = setInterval(() => {
+    if(pendingDocs !== null) tryRender(pendingDocs);
+  }, 50);
+  setTimeout(() => clearInterval(poll), 3000);
+
   let first = true;
   window._fb.listen(docs => {
-    window.produtos = docs;
-    if(typeof window.renderLista === 'function') window.renderLista();
-    if(typeof window.updateSidebar === 'function') window.updateSidebar();
+    tryRender(docs);
     if(first){
       first = false;
-      document.getElementById("dbStatus").className = "db-status ok";
-      document.getElementById("dbStatus").innerHTML = "&#9679; Firebase conectado";
+      const el = document.getElementById("dbStatus");
+      if(el){ el.className = "db-status ok"; el.innerHTML = "&#9679; Firebase conectado"; }
     }
   });
 });
