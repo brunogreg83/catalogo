@@ -1413,8 +1413,8 @@ async function gerarPDF(){
           hLine0 = hLine0min + extra * ratio0;
           hLine1 = pageAvail - hLine0 - GAP;
         } else {
-          // Apenas 1 linha: ocupa todo o espaço disponível
-          hLine0 = pageAvail;
+          // Apenas 1 linha: ocupa metade da página disponível
+          hLine0 = pageAvail / 2;
           hLine1 = 0;
         }
 
