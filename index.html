@@ -1359,18 +1359,18 @@ async function gerarPDF(){
 
         // Início de nova linha
         if (col === 0) {
-          // Avançar cy se não for o primeiro card da página
-          if (rowCount > 0) {
-            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
-            rowHeights = [0, 0];
-          }
-          // Quebrar se já usamos 3 linhas nesta página
           if (rowCount === 3) {
+            // 3 linhas completas — quebrar ANTES de avançar cy
+            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
             drawFooter();
             doc.addPage(); pgNum++;
             const sY = drawContentHeader();
             cy = sY + 4;
             rowCount = 0;
+            rowHeights = [0, 0];
+          } else if (rowCount > 0) {
+            // Avançar para a próxima linha dentro da mesma página
+            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
             rowHeights = [0, 0];
           }
           rowCount++;
