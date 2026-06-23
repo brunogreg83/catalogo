@@ -1021,6 +1021,7 @@ window.updateSidebar = function(){
 
 // ── PDF ───────────────────────────────────────────────────
 async function gerarPDF(){
+  const mostrarPreco = document.getElementById("chkPreco").checked;
   const prods=window.produtos;
   if(!prods.length){ showToast("Nenhum produto cadastrado.","error"); return; }
 
@@ -1209,7 +1210,6 @@ async function gerarPDF(){
     doc.addImage(logoData, "PNG", (PW - lw) / 2, 24, lw, lh);
 
     // ── CAPA: layout harmonioso ──────────────────────────────
-    const mostrarPreco = document.getElementById("chkPreco").checked;
     const cats_u = [...new Set(prods.map(p => p.categoria))];
 
     // Posicionamento centrado verticalmente na área abaixo da logo
@@ -1340,10 +1340,10 @@ async function gerarPDF(){
         // hdrH dinâmico (igual ao draw)
         const hasPr = !!mostrarPreco;
         doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-        const ppw = hasPr ? doc.getTextWidth(p.preco) + 12 : 0;
+        const ppw = hasPr ? doc.getTextWidth((p.preco || 'Consultar')) + 12 : 0;
         doc.setFontSize(14);
         const nl = doc.splitTextToSize(p.nome, cw - ppw - 16);
-        const hdrHC = 15 + (Math.min(nl.length, 2) > 1 ? 5.5 : 0);
+        const hdrHC = 17 + (Math.min(nl.length, 2) > 1 ? 7 : 0);
         let h = hdrHC + 1.5; // +faixa sky
         if (!!p.imagem) h += IMG_AREA + 2;
         h += 4;
