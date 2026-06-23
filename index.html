@@ -1383,16 +1383,16 @@ async function gerarPDF(){
       // Guarda altura calculada da linha atual (par de cards)
       let rowHeights = [0, 0];
 
-      const HDR_H = 9; // altura da faixa azul do topo
+      const HDR_H = 9;   // faixa azul do nome
+      const IMG_AREA = 28; // altura da área da foto no card (igual prod-img-wrap)
 
       // ── Calcula altura necessária para um card (sem desenhar) ──
       function calcCardH(p, cw) {
         const hasImg = !!p.imagem;
-        const textAreaW = hasImg ? cw - IMG_W - IMG_PAD - 10 : cw - 12;
-        // altura do header (faixa azul com nome) — nome sempre cabe numa linha no header
-        let h = HDR_H;
-        // preço abaixo do header se existir
-        if (mostrarPreco && p.preco) h += 6;
+        const textAreaW = cw - 10;
+        let h = HDR_H; // header azul
+        if (hasImg) h += IMG_AREA + 3; // foto abaixo do header
+        if (mostrarPreco && p.preco) h += 7; // preço
         // atributos
         (p.attrs || []).forEach(({ l: label, v: value }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
@@ -1400,10 +1400,7 @@ async function gerarPDF(){
           h += AH * Math.min(lines.length, 3);
         });
         if (p.ficha) h += AH + 2;
-        // padding inferior
-        h += 8;
-        // mínimo para imagem (imagem fica no lado direito, altura mínima do conteúdo)
-        if (hasImg) h = Math.max(h, HDR_H + IMG_H + IMG_PAD * 2 + 4);
+        h += 6; // padding inferior
         return h;
       }
 
@@ -1440,62 +1437,64 @@ async function gerarPDF(){
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
         doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
 
-        // Faixa azul no topo com nome (igual ao card da interface)
+        // Header azul gradiente com nome
         const nomeMaxW = CW - 10;
         doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
         const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
         const nomeRows  = Math.min(nomeLines.length, 2);
         const hdrH = HDR_H + (nomeRows > 1 ? 4 : 0);
-        // desenhar gradiente azul no header
         for (let gi = 0; gi < 20; gi++) {
           const t = gi / 20;
           doc.setFillColor(
             Math.round(C.blue[0] + (C.sky[0]-C.blue[0])*t),
             Math.round(C.blue[1] + (C.sky[1]-C.blue[1])*t),
-            Math.round(C.blue[2] + (C.sky[2]-C.blue[2])*t)
-          );
+            Math.round(C.blue[2] + (C.sky[2]-C.blue[2])*t));
           doc.rect(cx + gi*(CW/20), cardY, CW/20+0.5, hdrH, "F");
         }
-        // arredondar cantos superiores do header
-        F(C.white); doc.roundedRect(cx, cardY+hdrH-3, CW, 3, 0, 0, "F");
-        // nome em branco
+        // sobrepor cantos inferiores do header (sem arredondamento)
+        F(C.white); doc.rect(cx, cardY + hdrH - 0.5, CW, 0.5, "F");
         T(C.white);
-        nomeLines.slice(0, 2).forEach((ln, i) => {
-          doc.text(ln, cx + 5, cardY + 6.5 + i * 4);
-        });
+        nomeLines.slice(0, 2).forEach((ln, i) => doc.text(ln, cx + 5, cardY + 6.5 + i * 4));
 
-        // Preço abaixo do header (se ativo)
-        let bodyY = cardY + hdrH + 3;
-        if (mostrarPreco && p.preco) {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          doc.setTextColor(26, 130, 60);
-          doc.text(p.preco, cx + 5, bodyY + 4);
-          bodyY += 6;
-        }
+        let bodyY = cardY + hdrH;
 
-        // Imagem — lado direito, centralizada verticalmente no corpo
+        // Foto centralizada abaixo do header (igual prod-img-wrap da interface)
         if (hasImg) {
           try {
-            const imgX    = cx + CW - IMG_W - IMG_PAD;
-            const imgBoxH = IMG_H + 2;
-            const imgY    = cardY + hdrH + (ch - hdrH - imgBoxH) / 2;
             const naturalSize = await new Promise(res => {
               const im = new Image();
               im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
               im.onerror = () => res({ w: 1, h: 1 });
               im.src = p.imagem;
             });
+            const maxImgW = CW - 10, maxImgH = IMG_AREA;
             const ratio = naturalSize.w / naturalSize.h;
-            let dw = IMG_W, dh = IMG_W / ratio;
-            if (dh > IMG_H) { dh = IMG_H; dw = IMG_H * ratio; }
-            F(C.bluePale); D(C.gray); doc.setLineWidth(0.2);
-            doc.roundedRect(imgX - 1, imgY, IMG_W + 2, imgBoxH, 3, 3, "FD");
-            doc.addImage(p.imagem, imgX + (IMG_W - dw) / 2, imgY + 1 + (IMG_H - dh) / 2, dw, dh, undefined, "FAST", 0);
-          } catch (e) {}
+            let dw = maxImgW, dh = maxImgW / ratio;
+            if (dh > maxImgH) { dh = maxImgH; dw = maxImgH * ratio; }
+            // fundo azul claro da área da foto
+            F(C.bluePale);
+            doc.rect(cx, bodyY, CW, IMG_AREA + 3, "F");
+            const dx = cx + (CW - dw) / 2;
+            const dy = bodyY + (IMG_AREA + 3 - dh) / 2;
+            doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
+            bodyY += IMG_AREA + 3;
+          } catch (e) {
+            bodyY += 2;
+          }
+        }
+
+        bodyY += 3; // padding após foto ou header
+
+        // Preço
+        if (mostrarPreco && p.preco) {
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+          doc.setTextColor(26, 130, 60);
+          doc.text(p.preco, cx + 5, bodyY + 4);
+          bodyY += 7;
         }
 
         // Atributos
-        const textAreaW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 10;
+        const textAreaW = CW - 10;
         const NAMEPAD = cx + 5;
         let ay = bodyY;
         (p.attrs || []).forEach(({ l: label, v: value }) => {
