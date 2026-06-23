@@ -1342,7 +1342,8 @@ async function gerarPDF(){
         (p.attrs || []).forEach(({ l, v }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
           const vLines = doc.splitTextToSize(v, textAreaW - 28).length;
-          h += 5.0 * Math.min(vLines, 3) + 1.5; // LINE_H * linhas + gap entre campos
+          const vLines2 = doc.splitTextToSize(v, textAreaW - 22).length;
+          h += 4.2 * Math.min(vLines2, 3) + 1.5;
         });
         if (p.ficha) h += AH + 3;
         h += 4; // padding inferior
@@ -1485,8 +1486,8 @@ async function gerarPDF(){
 
         // ── Atributos — layout moderno com linha separadora e pill de label ──
         const PAD = cx + 5;
-        const VALX = cx + 30; // coluna do valor
-        const VALAW = CW - 35; // largura disponível para o valor
+        const VALX = cx + 24; // coluna do valor
+        const VALAW = CW - 29; // largura disponível para o valor
         const ROW_H = 6.5; // altura por linha (campo + gap entre campos)
         let ay = bodyY;
 
@@ -1497,9 +1498,9 @@ async function gerarPDF(){
 
           // Valor — mesma linha, alinhado na coluna VALX
           doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); T(C.text);
-          const lines = doc.splitTextToSize(value, VALAW);
+          const lines = doc.splitTextToSize(value, VALAW - 2);
           const visLines = lines.slice(0, 3);
-          const LINE_H = 5.0; // espaçamento entre linhas do mesmo campo
+          const LINE_H = 4.2; // espaçamento entre linhas do mesmo campo
           visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * LINE_H));
           ay += LINE_H * visLines.length + 1.5; // +1.5 entre campos diferentes
         });
