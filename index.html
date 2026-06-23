@@ -1401,7 +1401,7 @@ async function gerarPDF(){
         h += 4;
         (p.attrs || []).forEach(({ l, v }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-          h += AH * Math.min(doc.splitTextToSize(v, textAreaW - 28).length, 3);
+          h += 7.7 * Math.min(doc.splitTextToSize(v, textAreaW - 28).length, 3); // ROW_H + gap
         });
         if (p.ficha) h += AH + 2;
         h += 5;
@@ -1453,7 +1453,7 @@ async function gerarPDF(){
 
         // Medir pill de preço
         doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-        const precoPillW = precoTxt ? doc.getTextWidth("$ " + precoTxt) + 16 : 0;
+        const precoPillW = precoTxt ? doc.getTextWidth("R$ " + precoTxt) + 8 : 0;
         const precoPillH = 8;
 
         // Nome — fonte maior para mais destaque
@@ -1483,14 +1483,14 @@ async function gerarPDF(){
           const pillH2 = 8;
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          const pillTxt = "$ " + precoTxt;
+          const pillTxt = "R$ " + precoTxt;
           const pillTW = doc.getTextWidth(pillTxt);
-          const pillW2 = pillTW + 16;
+          const pillW2 = pillTW + 8;
           const pillX = cx + CW - pillW2 - 5;
           const pillY = cardY + (hdrH - pillH2) / 2;
-          // fundo verde claro
-          doc.setFillColor(237, 250, 242);
-          doc.setDrawColor(182, 232, 202);
+          // fundo verde exato do modelo
+          doc.setFillColor(232, 245, 238);
+          doc.setDrawColor(172, 224, 195);
           doc.setLineWidth(0.4);
           doc.roundedRect(pillX, pillY, pillW2, pillH2, 4, 4, "FD");
           // texto verde escuro
@@ -1525,40 +1525,49 @@ async function gerarPDF(){
 
         bodyY += 4; // padding corpo
 
-        // Atributos
-        const textAreaW = CW - 10;
-        const NAMEPAD = cx + 5;
+        // ── Atributos — layout moderno com linha separadora e pill de label ──
+        const PAD = cx + 5;
+        const VALX = cx + 30; // coluna do valor
+        const VALAW = CW - 35; // largura disponível para o valor
+        const ROW_H = 6.2; // altura por linha
         let ay = bodyY;
-        (p.attrs || []).forEach(({ l: label, v: value }) => {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(6); T(C.blue);
-          doc.text(label.toUpperCase(), NAMEPAD, ay);
-          doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); T(C.text);
-          const lines = doc.splitTextToSize(value, textAreaW - 28);
+
+        (p.attrs || []).forEach(({ l: label, v: value }, idx) => {
+          // Separador entre atributos (exceto o primeiro)
+          if (idx > 0) {
+            doc.setDrawColor(235, 240, 248); doc.setLineWidth(0.25);
+            doc.line(PAD, ay - 1, cx + CW - 5, ay - 1);
+          }
+
+          // Label — pill azul muito sutil
+          doc.setFont("helvetica", "bold"); doc.setFontSize(6.2);
+          const lw = doc.getTextWidth(label.toUpperCase()) + 5;
+          doc.setFillColor(238, 244, 255);
+          doc.roundedRect(PAD, ay - 3.8, lw, 5.2, 1.5, 1.5, "F");
+          T(C.blue);
+          doc.text(label.toUpperCase(), PAD + 2.5, ay);
+
+          // Valor — Nunito-like, escuro, tamanho maior
+          doc.setFont("helvetica", "normal"); doc.setFontSize(8); T(C.text);
+          const lines = doc.splitTextToSize(value, VALAW);
           const visLines = lines.slice(0, 3);
-          visLines.forEach((ln, i) => doc.text(ln, NAMEPAD + 28, ay + i * 4.5));
-          ay += AH * visLines.length;
+          visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * ROW_H));
+          ay += ROW_H * visLines.length + 1.5;
         });
 
-        // Ficha técnica
+        // ── Ficha Técnica — pill azul clicável ──
         if (p.ficha) {
-          const fichaLabel = "FICHA TECNICA";
-          const fichaY = ay + 1;
-          doc.setFont("helvetica", "bold"); doc.setFontSize(6); T(C.blue);
-          const ficNP = cx + 5;
-          const ix = ficNP, iy = fichaY - 3.5, iw = 3.8, ih = 4.8, fold = 1.2;
-          F(C.bluePale); D(C.blue); doc.setLineWidth(0.2);
-          doc.rect(ix, iy, iw, ih, "FD");
-          doc.setFillColor(...C.blue);
-          doc.triangle(ix+iw-fold, iy, ix+iw, iy+fold, ix+iw-fold, iy+fold, "F");
-          D(C.blue); doc.setLineWidth(0.25);
-          doc.line(ix+0.6, iy+1.8, ix+iw-0.6, iy+1.8);
-          doc.line(ix+0.6, iy+2.7, ix+iw-0.6, iy+2.7);
-          doc.line(ix+0.6, iy+3.6, ix+iw-1.2, iy+3.6);
-          doc.text(fichaLabel, ficNP + 5, fichaY);
-          const fichaLabelW = doc.getTextWidth(fichaLabel);
-          D(C.blue); doc.setLineWidth(0.15);
-          doc.line(ficNP + 5, fichaY + 0.4, ficNP + 5 + fichaLabelW, fichaY + 0.4);
-          doc.link(ficNP + 5, fichaY - 3, fichaLabelW, 4.5, { url: p.ficha });
+          ay += 1;
+          // pill fundo
+          doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+          const ficLabel = "↓  Ficha Técnica";
+          const ficW = doc.getTextWidth(ficLabel) + 12;
+          doc.setFillColor(238, 244, 255);
+          doc.setDrawColor(...C.blue); doc.setLineWidth(0.35);
+          doc.roundedRect(PAD, ay - 4.5, ficW, 7, 3, 3, "FD");
+          T(C.blue);
+          doc.text(ficLabel, PAD + 6, ay);
+          doc.link(PAD, ay - 4.5, ficW, 7, { url: p.ficha });
         }
 
         prodIdx++;
