@@ -1207,11 +1207,11 @@ async function gerarPDF(){
 
     // Logo — centrada, grande
     const lw = 96, lh = lw * (1210 / 1648);
-    doc.addImage(logoData, "PNG", (PW - lw) / 2, 52, lw, lh);
+    doc.addImage(logoData, "PNG", (PW - lw) / 2, 42, lw, lh);
 
     // ── CAPA: layout centralizado ───────────────────────────
     const cats_u = [...new Set(prods.map(p => p.categoria))];
-    const logoBottom = 52 + lh;
+    const logoBottom = 42 + lh;
 
     // CATALOGO — logo abaixo da logo, espaço reduzido
     doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
@@ -1220,7 +1220,7 @@ async function gerarPDF(){
     const catBW2  = doc.getTextWidth(catTxt2);
     const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
     const availH3 = (PH - 20) - logoBottom;
-    const catY2   = logoBottom + 10;
+    const catY2   = logoBottom + 26;
     doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
 
     // 2026 — abaixo de CATÁLOGO, menor, mesma família visual
@@ -1489,21 +1489,17 @@ async function gerarPDF(){
         const ROW_H = 7.2; // altura por linha
         let ay = bodyY;
 
-        (p.attrs || []).forEach(({ l: label, v: value }, idx) => {
-          // Label — pill azul muito sutil
-          doc.setFont("helvetica", "bold"); doc.setFontSize(6.2);
-          const lw = doc.getTextWidth(label.toUpperCase()) + 5;
-          doc.setFillColor(238, 244, 255);
-          doc.roundedRect(PAD, ay - 3.8, lw, 5.2, 1.5, 1.5, "F");
-          T(C.blue);
-          doc.text(label.toUpperCase(), PAD + 2.5, ay);
+        (p.attrs || []).forEach(({ l: label, v: value }) => {
+          // Label uppercase azul bold
+          doc.setFont("helvetica", "bold"); doc.setFontSize(7); T(C.blue);
+          doc.text(label.toUpperCase(), PAD, ay);
 
-          // Valor — Nunito-like, escuro, tamanho maior
+          // Valor — mesma linha, alinhado na coluna VALX
           doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); T(C.text);
           const lines = doc.splitTextToSize(value, VALAW);
           const visLines = lines.slice(0, 3);
           visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * ROW_H));
-          ay += ROW_H * visLines.length + 1.5;
+          ay += ROW_H * visLines.length + 1;
         });
 
         // ── Ficha Técnica — pill azul clicável ──
