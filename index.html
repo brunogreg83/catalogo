@@ -1383,28 +1383,27 @@ async function gerarPDF(){
       // Guarda altura calculada da linha atual (par de cards)
       let rowHeights = [0, 0];
 
-      const HDR_H = 9;   // faixa azul do nome
-      const IMG_AREA = 28; // altura da área da foto no card (igual prod-img-wrap)
+      const HDR_H  = 10; // altura da faixa azul do nome
+      const IMG_AREA = 30; // altura da área da foto
 
-      // ── Calcula altura necessária para um card (sem desenhar) ──
+      // ── Calcula altura necessária para um card ──
       function calcCardH(p, cw) {
-        const hasImg = !!p.imagem;
         const textAreaW = cw - 10;
-        let h = HDR_H; // header azul
-        if (hasImg) h += IMG_AREA + 3; // foto abaixo do header
-        if (mostrarPreco && p.preco) h += 7; // preço
-        // atributos
+        let h = HDR_H;
+        if (!!p.imagem) h += IMG_AREA + 2;
+        h += 4; // padding topo do corpo
         (p.attrs || []).forEach(({ l: label, v: value }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
           const lines = doc.splitTextToSize(value, textAreaW - 28);
           h += AH * Math.min(lines.length, 3);
         });
         if (p.ficha) h += AH + 2;
-        h += 6; // padding inferior
+        h += 5; // padding inferior
         return h;
       }
 
-      for (const p of gprods) {
+      for (let gi2 = 0; gi2 < gprods.length; gi2++) {
+        const p = gprods[gi2];
         const col = prodIdx % COLS;
 
         // Ao iniciar nova linha, avançar cy pela maior altura do par anterior
@@ -1413,12 +1412,17 @@ async function gerarPDF(){
           rowHeights = [0, 0];
         }
 
-        // Calcular altura deste card
+        // Calcular altura deste card + par (para decidir quebra com margem correta)
         const ch = calcCardH(p, CW);
         rowHeights[col] = ch;
+        // Se col=0, pré-calcular col=1 para saber a altura real da linha
+        let pairH = ch;
+        if (col === 0 && gi2 + 1 < gprods.length) {
+          pairH = Math.max(ch, calcCardH(gprods[gi2 + 1], CW));
+        }
 
-        // Quebra de página (coluna esquerda): usar altura máxima estimada do par
-        if (col === 0 && cy + ch > PH - FOOTER_H) {
+        // Quebra de página (coluna esquerda)
+        if (col === 0 && cy + pairH > PH - FOOTER_H) {
           drawFooter();
           doc.addPage(); pgNum++;
           const startY2 = drawContentHeader();
@@ -1431,18 +1435,24 @@ async function gerarPDF(){
         const hasImg = !!p.imagem;
 
         // ── Desenhar card ──
-        // Sombra + fundo branco
+        // Sombra
         doc.setFillColor(218, 228, 242);
         doc.roundedRect(cx + 1, cardY + 1.5, CW, ch, 5, 5, "F");
+        // Fundo branco
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
         doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
 
-        // Header azul gradiente com nome
-        const nomeMaxW = CW - 10;
+        // ── Header: gradiente azul, nome à esquerda, preço à direita ──
         doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+        // calcular largura do preço para reservar espaço
+        const precoTxt = (mostrarPreco && p.preco) ? p.preco : "";
+        const precoW = precoTxt ? doc.getTextWidth(precoTxt) + 8 : 0;
+        const nomeMaxW = CW - precoW - 10;
         const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
         const nomeRows  = Math.min(nomeLines.length, 2);
-        const hdrH = HDR_H + (nomeRows > 1 ? 4 : 0);
+        const hdrH = HDR_H + (nomeRows > 1 ? 4.5 : 0);
+
+        // Gradiente azul → sky
         for (let gi = 0; gi < 20; gi++) {
           const t = gi / 20;
           doc.setFillColor(
@@ -1451,14 +1461,21 @@ async function gerarPDF(){
             Math.round(C.blue[2] + (C.sky[2]-C.blue[2])*t));
           doc.rect(cx + gi*(CW/20), cardY, CW/20+0.5, hdrH, "F");
         }
-        // sobrepor cantos inferiores do header (sem arredondamento)
-        F(C.white); doc.rect(cx, cardY + hdrH - 0.5, CW, 0.5, "F");
+
+        // Nome em branco
         T(C.white);
-        nomeLines.slice(0, 2).forEach((ln, i) => doc.text(ln, cx + 5, cardY + 6.5 + i * 4));
+        nomeLines.slice(0, 2).forEach((ln, i) => doc.text(ln, cx + 5, cardY + 7 + i * 4.5));
+
+        // Preço no header — lado direito, amarelo claro
+        if (precoTxt) {
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+          doc.setTextColor(255, 235, 120);
+          doc.text(precoTxt, cx + CW - 5, cardY + 7, { align: "right" });
+        }
 
         let bodyY = cardY + hdrH;
 
-        // Foto centralizada abaixo do header (igual prod-img-wrap da interface)
+        // ── Foto centralizada abaixo do header ──
         if (hasImg) {
           try {
             const naturalSize = await new Promise(res => {
@@ -1467,31 +1484,17 @@ async function gerarPDF(){
               im.onerror = () => res({ w: 1, h: 1 });
               im.src = p.imagem;
             });
-            const maxImgW = CW - 10, maxImgH = IMG_AREA;
+            const maxImgW = CW - 8, maxImgH = IMG_AREA;
             const ratio = naturalSize.w / naturalSize.h;
             let dw = maxImgW, dh = maxImgW / ratio;
             if (dh > maxImgH) { dh = maxImgH; dw = maxImgH * ratio; }
-            // fundo azul claro da área da foto
-            F(C.bluePale);
-            doc.rect(cx, bodyY, CW, IMG_AREA + 3, "F");
-            const dx = cx + (CW - dw) / 2;
-            const dy = bodyY + (IMG_AREA + 3 - dh) / 2;
-            doc.addImage(p.imagem, dx, dy, dw, dh, undefined, "FAST", 0);
-            bodyY += IMG_AREA + 3;
-          } catch (e) {
-            bodyY += 2;
-          }
+            F(C.bluePale); doc.rect(cx, bodyY, CW, IMG_AREA + 2, "F");
+            doc.addImage(p.imagem, cx + (CW - dw)/2, bodyY + (IMG_AREA + 2 - dh)/2, dw, dh, undefined, "FAST", 0);
+            bodyY += IMG_AREA + 2;
+          } catch(e) {}
         }
 
-        bodyY += 3; // padding após foto ou header
-
-        // Preço
-        if (mostrarPreco && p.preco) {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          doc.setTextColor(26, 130, 60);
-          doc.text(p.preco, cx + 5, bodyY + 4);
-          bodyY += 7;
-        }
+        bodyY += 4; // padding corpo
 
         // Atributos
         const textAreaW = CW - 10;
