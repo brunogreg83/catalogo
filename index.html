@@ -1367,7 +1367,7 @@ async function gerarPDF(){
           const vLines2 = doc.splitTextToSize(v, textAreaW - 22).length;
           h += 4.2 * Math.min(vLines2, 3) + 1.5;
         });
-        if (p.ficha) h += AH + 3;
+        if (p.ficha) h += AH + 8;
         h += 1; // padding inferior
         return h;
       }
@@ -1537,7 +1537,7 @@ async function gerarPDF(){
 
         // ── Ficha Técnica — pill azul clicável ──
         if (p.ficha) {
-          ay += 1;
+          ay += 10;
           // pill fundo
           doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
           const ficLabel = ">> Ficha Tecnica";
