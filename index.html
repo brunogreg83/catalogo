@@ -1207,11 +1207,11 @@ async function gerarPDF(){
 
     // Logo — centrada, grande
     const lw = 96, lh = lw * (1210 / 1648);
-    doc.addImage(logoData, "PNG", (PW - lw) / 2, 36, lw, lh);
+    doc.addImage(logoData, "PNG", (PW - lw) / 2, 52, lw, lh);
 
     // ── CAPA: layout centralizado ───────────────────────────
     const cats_u = [...new Set(prods.map(p => p.categoria))];
-    const logoBottom = 36 + lh;
+    const logoBottom = 52 + lh;
 
     // CATALOGO — logo abaixo da logo, espaço reduzido
     doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
@@ -1220,7 +1220,7 @@ async function gerarPDF(){
     const catBW2  = doc.getTextWidth(catTxt2);
     const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
     const availH3 = (PH - 20) - logoBottom;
-    const catY2   = logoBottom + (availH3 - 37) / 2 + 6;
+    const catY2   = logoBottom + 10;
     doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
 
     // 2026 — abaixo de CATÁLOGO, menor, mesma família visual
@@ -1338,13 +1338,13 @@ async function gerarPDF(){
         const hdrHC = 17 + (Math.min(nl.length, 2) > 1 ? 7 : 0);
         let h = hdrHC + 1.5; // +faixa sky
         if (!!p.imagem) h += IMG_AREA + 2;
-        h += 4;
+        h += 7; // padding após foto (igual ao draw)
         (p.attrs || []).forEach(({ l, v }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-          h += 7.7 * Math.min(doc.splitTextToSize(v, textAreaW - 28).length, 3); // ROW_H + gap
+          h += 8.5 * Math.min(doc.splitTextToSize(v, textAreaW - 28).length, 3);
         });
-        if (p.ficha) h += AH + 2;
-        h += 5;
+        if (p.ficha) h += AH + 3;
+        h += 4; // padding inferior
         return h;
       }
 
@@ -1480,22 +1480,16 @@ async function gerarPDF(){
           } catch(e) {}
         }
 
-        bodyY += 4; // padding corpo
+        bodyY += 7; // padding corpo — mais espaço após foto
 
         // ── Atributos — layout moderno com linha separadora e pill de label ──
         const PAD = cx + 5;
         const VALX = cx + 30; // coluna do valor
         const VALAW = CW - 35; // largura disponível para o valor
-        const ROW_H = 6.2; // altura por linha
+        const ROW_H = 7.2; // altura por linha
         let ay = bodyY;
 
         (p.attrs || []).forEach(({ l: label, v: value }, idx) => {
-          // Separador entre atributos (exceto o primeiro)
-          if (idx > 0) {
-            doc.setDrawColor(235, 240, 248); doc.setLineWidth(0.25);
-            doc.line(PAD, ay - 1, cx + CW - 5, ay - 1);
-          }
-
           // Label — pill azul muito sutil
           doc.setFont("helvetica", "bold"); doc.setFontSize(6.2);
           const lw = doc.getTextWidth(label.toUpperCase()) + 5;
@@ -1505,7 +1499,7 @@ async function gerarPDF(){
           doc.text(label.toUpperCase(), PAD + 2.5, ay);
 
           // Valor — Nunito-like, escuro, tamanho maior
-          doc.setFont("helvetica", "normal"); doc.setFontSize(8); T(C.text);
+          doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); T(C.text);
           const lines = doc.splitTextToSize(value, VALAW);
           const visLines = lines.slice(0, 3);
           visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * ROW_H));
