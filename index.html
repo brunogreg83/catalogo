@@ -1452,13 +1452,13 @@ async function gerarPDF(){
         const precoTxt = (mostrarPreco && p.preco) ? p.preco : "";
 
         // Medir pill de preço
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-        const precoPillW = precoTxt ? doc.getTextWidth(precoTxt) + 12 : 0;
-        const precoPillH = 8.5;
+        doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+        const precoPillW = precoTxt ? doc.getTextWidth("$ " + precoTxt) + 16 : 0;
+        const precoPillH = 8;
 
         // Nome — fonte maior para mais destaque
         doc.setFont("helvetica", "bold"); doc.setFontSize(11);
-        const nomeMaxW = CW - precoPillW - 16;
+        const nomeMaxW = CW - precoPillW - 14;
         const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
         const nomeRows  = Math.min(nomeLines.length, 2);
         const hdrH = 15 + (nomeRows > 1 ? 5.5 : 0);
@@ -1478,21 +1478,25 @@ async function gerarPDF(){
         nomeLines.slice(0, 2).forEach((ln, i) =>
           doc.text(ln, cx + 6, cardY + 10.5 + i * 5.5));
 
-        // Pill de preço — fundo branco com sombra sutil, texto azul escuro bold
+        // Pill de preço — verde claro com cifrão + valor (igual badge da interface)
         if (precoTxt) {
-          const pillX = cx + CW - precoPillW - 5;
-          const pillY = cardY + (hdrH - precoPillH) / 2;
-          // sombra pill
-          doc.setFillColor(0, 30, 80);
-          doc.setGState && doc.setGState(doc.GState({opacity: 0.18}));
-          doc.roundedRect(pillX + 0.5, pillY + 0.8, precoPillW, precoPillH, 3, 3, "F");
-          doc.setGState && doc.setGState(doc.GState({opacity: 1}));
-          // fundo branco
-          F(C.white); doc.roundedRect(pillX, pillY, precoPillW, precoPillH, 3, 3, "F");
-          // texto
-          doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-          doc.setTextColor(...C.blueDk);
-          doc.text(precoTxt, pillX + precoPillW/2, pillY + 6, { align: "center" });
+          const pillH2 = 8;
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+          const pillTxt = "$ " + precoTxt;
+          const pillTW = doc.getTextWidth(pillTxt);
+          const pillW2 = pillTW + 16;
+          const pillX = cx + CW - pillW2 - 5;
+          const pillY = cardY + (hdrH - pillH2) / 2;
+          // fundo verde claro
+          doc.setFillColor(237, 250, 242);
+          doc.setDrawColor(182, 232, 202);
+          doc.setLineWidth(0.4);
+          doc.roundedRect(pillX, pillY, pillW2, pillH2, 4, 4, "FD");
+          // texto verde escuro
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+          doc.setTextColor(26, 122, 60);
+          doc.text(pillTxt, pillX + pillW2/2, pillY + pillH2/2 + 1.4, { align: "center" });
         }
 
         // Faixa sky na base do header
