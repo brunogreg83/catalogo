@@ -1386,19 +1386,25 @@ async function gerarPDF(){
       const HDR_H  = 10; // altura da faixa azul do nome
       const IMG_AREA = 30; // altura da área da foto
 
-      // ── Calcula altura necessária para um card ──
+      // ── Calcula altura necessária para um card (espelha hdrH do draw) ──
       function calcCardH(p, cw) {
         const textAreaW = cw - 10;
-        let h = HDR_H;
+        // hdrH dinâmico (igual ao draw)
+        const hasPr = !!(mostrarPreco && p.preco);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+        const ppw = hasPr ? doc.getTextWidth(p.preco) + 12 : 0;
+        doc.setFontSize(11);
+        const nl = doc.splitTextToSize(p.nome, cw - ppw - 16);
+        const hdrHC = 15 + (Math.min(nl.length, 2) > 1 ? 5.5 : 0);
+        let h = hdrHC + 1.5; // +faixa sky
         if (!!p.imagem) h += IMG_AREA + 2;
-        h += 4; // padding topo do corpo
-        (p.attrs || []).forEach(({ l: label, v: value }) => {
+        h += 4;
+        (p.attrs || []).forEach(({ l, v }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-          const lines = doc.splitTextToSize(value, textAreaW - 28);
-          h += AH * Math.min(lines.length, 3);
+          h += AH * Math.min(doc.splitTextToSize(v, textAreaW - 28).length, 3);
         });
         if (p.ficha) h += AH + 2;
-        h += 5; // padding inferior
+        h += 5;
         return h;
       }
 
@@ -1442,36 +1448,55 @@ async function gerarPDF(){
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
         doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
 
-        // ── Header: gradiente azul, nome à esquerda, preço à direita ──
-        doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-        // calcular largura do preço para reservar espaço
+        // ── Header: gradiente azul escuro → azul, nome + pill de preço ──
         const precoTxt = (mostrarPreco && p.preco) ? p.preco : "";
-        const precoW = precoTxt ? doc.getTextWidth(precoTxt) + 8 : 0;
-        const nomeMaxW = CW - precoW - 10;
+
+        // Medir pill de preço
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+        const precoPillW = precoTxt ? doc.getTextWidth(precoTxt) + 12 : 0;
+        const precoPillH = 8.5;
+
+        // Nome — fonte maior para mais destaque
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+        const nomeMaxW = CW - precoPillW - 16;
         const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
         const nomeRows  = Math.min(nomeLines.length, 2);
-        const hdrH = HDR_H + (nomeRows > 1 ? 4.5 : 0);
+        const hdrH = 15 + (nomeRows > 1 ? 5.5 : 0);
 
-        // Gradiente azul → sky
-        for (let gi = 0; gi < 20; gi++) {
-          const t = gi / 20;
+        // Gradiente azul escuro → azul médio (da esquerda p/ direita)
+        for (let gi = 0; gi < 24; gi++) {
+          const t = gi / 24;
           doc.setFillColor(
-            Math.round(C.blue[0] + (C.sky[0]-C.blue[0])*t),
-            Math.round(C.blue[1] + (C.sky[1]-C.blue[1])*t),
-            Math.round(C.blue[2] + (C.sky[2]-C.blue[2])*t));
-          doc.rect(cx + gi*(CW/20), cardY, CW/20+0.5, hdrH, "F");
+            Math.round(C.blueDk[0] + (C.blue[0]-C.blueDk[0])*t),
+            Math.round(C.blueDk[1] + (C.blue[1]-C.blueDk[1])*t),
+            Math.round(C.blueDk[2] + (C.blue[2]-C.blueDk[2])*t));
+          doc.rect(cx + gi*(CW/24), cardY, CW/24+0.5, hdrH, "F");
         }
 
-        // Nome em branco
-        T(C.white);
-        nomeLines.slice(0, 2).forEach((ln, i) => doc.text(ln, cx + 5, cardY + 7 + i * 4.5));
+        // Nome em branco, bold, 11pt
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11); T(C.white);
+        nomeLines.slice(0, 2).forEach((ln, i) =>
+          doc.text(ln, cx + 6, cardY + 10.5 + i * 5.5));
 
-        // Preço no header — lado direito, amarelo claro
+        // Pill de preço — fundo branco com sombra sutil, texto azul escuro bold
         if (precoTxt) {
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-          doc.setTextColor(255, 235, 120);
-          doc.text(precoTxt, cx + CW - 5, cardY + 7, { align: "right" });
+          const pillX = cx + CW - precoPillW - 5;
+          const pillY = cardY + (hdrH - precoPillH) / 2;
+          // sombra pill
+          doc.setFillColor(0, 30, 80);
+          doc.setGState && doc.setGState(doc.GState({opacity: 0.18}));
+          doc.roundedRect(pillX + 0.5, pillY + 0.8, precoPillW, precoPillH, 3, 3, "F");
+          doc.setGState && doc.setGState(doc.GState({opacity: 1}));
+          // fundo branco
+          F(C.white); doc.roundedRect(pillX, pillY, precoPillW, precoPillH, 3, 3, "F");
+          // texto
+          doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+          doc.setTextColor(...C.blueDk);
+          doc.text(precoTxt, pillX + precoPillW/2, pillY + 6, { align: "center" });
         }
+
+        // Faixa sky na base do header
+        F(C.sky); doc.rect(cx, cardY + hdrH - 1.5, CW, 1.5, "F");
 
         let bodyY = cardY + hdrH;
 
