@@ -1209,43 +1209,35 @@ async function gerarPDF(){
     const lw = 96, lh = lw * (1210 / 1648);
     doc.addImage(logoData, "PNG", (PW - lw) / 2, 24, lw, lh);
 
-    // ── CAPA: layout harmonioso ──────────────────────────────
+    // ── CAPA: layout limpo ────────────────────────────────
     const cats_u = [...new Set(prods.map(p => p.categoria))];
-
-    // Posicionamento centrado verticalmente na área abaixo da logo
     const logoBottom = 24 + lh;
-    const footerTop  = PH - 20;
-    const contentH   = footerTop - logoBottom;
-    const midY       = logoBottom + contentH * 0.5;
 
-    // ── Linha divisória sky (abaixo da logo) ──
-    const divY = logoBottom + 10;
+    // Bloco central — distribuído verticalmente no espaço disponível
+    const availH2 = (PH - 20) - logoBottom;
+    const blockH2 = 58;
+    const blockY2 = logoBottom + (availH2 - blockH2) / 2;
+
+    // Linha divisória sky
     D(C.sky); doc.setLineWidth(0.5);
-    doc.line(PW/2 - 25, divY, PW/2 + 25, divY);
+    doc.line(PW/2 - 28, blockY2, PW/2 + 28, blockY2);
 
-    // ── Subtítulo pequeno ──
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10); T(C.muted);
-    doc.text("Linha Profissional de Limpeza e Higienização", PW/2, divY + 12, { align: "center" });
+    // Subtítulo discreto
+    doc.setFont("helvetica", "normal"); doc.setFontSize(11); T(C.muted);
+    doc.text("Linha Profissional de Limpeza e Higienizacao", PW/2, blockY2 + 14, { align: "center" });
 
-    // ── CATÁLOGO — enorme, centralizado ──
+    // CATALOGO — destaque principal
     doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
-    const catTxt2 = "CATÁLOGO";
+    const catTxt2 = "CATALOGO";
     const catCS2  = 7;
     const catBW2  = doc.getTextWidth(catTxt2);
     const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
-    const catY2   = divY + 38;
+    const catY2   = blockY2 + 42;
     doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
 
-    // Linha decorativa dupla abaixo de CATÁLOGO
+    // Linha decorativa abaixo
     D(C.sky); doc.setLineWidth(1.5);
-    doc.line(PW/2 - 35, catY2 + 8, PW/2 + 35, catY2 + 8);
-    D([200, 225, 255]); doc.setLineWidth(0.5);
-    doc.line(PW/2 - 25, catY2 + 11, PW/2 + 25, catY2 + 11);
-
-    // ── AB Chemicals tagline ──
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.blue);
-    doc.text("AB CHEMICALS  ·  Soluções em Limpeza Profissional", PW/2, catY2 + 22, { align: "center" });
-
+    doc.line(PW/2 - 35, catY2 + 9, PW/2 + 35, catY2 + 9);
     // Rodapé da capa
     F(C.text); doc.rect(0, PH - 20, PW, 20, "F");
 
