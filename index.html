@@ -1209,35 +1209,31 @@ async function gerarPDF(){
     const lw = 96, lh = lw * (1210 / 1648);
     doc.addImage(logoData, "PNG", (PW - lw) / 2, 24, lw, lh);
 
-    // ── CAPA: layout limpo ────────────────────────────────
+    // ── CAPA: layout centralizado ───────────────────────────
     const cats_u = [...new Set(prods.map(p => p.categoria))];
     const logoBottom = 24 + lh;
 
-    // Bloco central — distribuído verticalmente no espaço disponível
-    const availH2 = (PH - 20) - logoBottom;
-    const blockH2 = 58;
-    const blockY2 = logoBottom + (availH2 - blockH2) / 2;
-
-    // Linha divisória sky
-    D(C.sky); doc.setLineWidth(0.5);
-    doc.line(PW/2 - 28, blockY2, PW/2 + 28, blockY2);
-
-    // Subtítulo discreto
-    doc.setFont("helvetica", "normal"); doc.setFontSize(11); T(C.muted);
-    doc.text("Linha Profissional de Limpeza e Higienizacao", PW/2, blockY2 + 14, { align: "center" });
-
-    // CATALOGO — destaque principal
+    // CATALOGO — logo abaixo da logo, espaço reduzido
     doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
     const catTxt2 = "CATALOGO";
     const catCS2  = 7;
     const catBW2  = doc.getTextWidth(catTxt2);
     const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
-    const catY2   = blockY2 + 42;
+    const catY2   = logoBottom + 22;
     doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
 
-    // Linha decorativa abaixo
+    // 2026 — abaixo de CATÁLOGO, menor, mesma família visual
+    doc.setFont("helvetica", "bold"); doc.setFontSize(22); T(C.blue);
+    const yearTxt = "2026";
+    const yearCS  = 8;
+    const yearBW  = doc.getTextWidth(yearTxt);
+    const yearTW  = yearBW + yearCS * (yearTxt.length - 1);
+    const yearY   = catY2 + 14;
+    doc.text(yearTxt, (PW - yearTW) / 2, yearY, { charSpace: yearCS });
+
+    // Linha decorativa sky abaixo
     D(C.sky); doc.setLineWidth(1.5);
-    doc.line(PW/2 - 35, catY2 + 9, PW/2 + 35, catY2 + 9);
+    doc.line(PW/2 - 28, yearY + 7, PW/2 + 28, yearY + 7);
     // Rodapé da capa
     F(C.text); doc.rect(0, PH - 20, PW, 20, "F");
 
