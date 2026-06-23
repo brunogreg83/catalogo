@@ -97,15 +97,15 @@ window._fb = {
         : err.code === 'unavailable'
         ? 'Servidor indisponível — verifique a conexão'
         : `Erro: ${err.code || err.message}`;
-      window.showToast(msg, "error");
-      document.getElementById("dbStatus").className = "db-status error";
-      document.getElementById("dbStatus").innerHTML = `&#9679; ${msg}`;
+      if(typeof window.showToast==='function') window.showToast(msg, "error");
+      const el = document.getElementById("dbStatus");
+      if(el){ el.className = "db-status error"; el.innerHTML = `&#9679; ${msg}`; }
     });
   }
 };
 
-// Aguarda DOM e inicia listener
-document.addEventListener("DOMContentLoaded", () => {
+// Aguarda tudo carregar (incluindo scripts do body) antes de iniciar o listener
+window.addEventListener("load", () => {
   document.getElementById("dbStatus").innerHTML = "&#9679; Conectando…";
   let first = true;
   window._fb.listen(docs => {
@@ -1397,7 +1397,7 @@ async function gerarPDF(){
         }
 
         // ── Função interna: desenhar um card ──
-        function drawCard(p, cx, cardY, ch) {
+        async function drawCard(p, cx, cardY, ch) {
           const hasImg = !!p.imagem;
         // Sombra
         doc.setFillColor(218, 228, 242);
@@ -1534,7 +1534,7 @@ async function gerarPDF(){
         for (let lineSlot = 0; lineSlot < 2; lineSlot++) {
           const idx = gi2 + lineSlot;
           if (idx >= gprods.length) break;
-          drawCard(gprods[idx], MG + lineSlot * (CW + HGAP), cy, hLine0);
+          await drawCard(gprods[idx], MG + lineSlot * (CW + HGAP), cy, hLine0);
         }
 
         // Avançar cy para a linha 1
@@ -1545,7 +1545,7 @@ async function gerarPDF(){
           for (let lineSlot = 0; lineSlot < 2; lineSlot++) {
             const idx = gi2 + 2 + lineSlot;
             if (idx >= gprods.length) break;
-            drawCard(gprods[idx], MG + lineSlot * (CW + HGAP), cy, hLine1);
+            await drawCard(gprods[idx], MG + lineSlot * (CW + HGAP), cy, hLine1);
           }
           cy += hLine1 + GAP;
         }
