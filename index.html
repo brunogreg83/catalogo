@@ -1362,16 +1362,19 @@ async function gerarPDF(){
         }
 
         // Nova linha (col=0): verificar quebra ANTES de avançar cy
-        if (col === 0 && prodIdx > 0) {
-          // Quebra a cada 6 produtos OU se não couber na página
-          if (prodIdx % 6 === 0 || cy + Math.max(rowHeights[0], rowHeights[1]) + GAP + pairH > PH - FOOTER_H) {
-            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+        if (col === 0 && gi2 > 0) {
+          const prevRowH = Math.max(rowHeights[0], rowHeights[1]) + GAP;
+          // gi2 é o índice do card atual; gi2/2 = número da linha atual (0-based)
+          // Quebrar a cada 3 linhas (= 6 cards) ou se não couber
+          const lineIdx = Math.floor(gi2 / 2); // linha atual (0=primeira)
+          if (lineIdx % 3 === 0 || cy + prevRowH + pairH > PH - FOOTER_H) {
+            cy += prevRowH;
             drawFooter();
             doc.addPage(); pgNum++;
             const startY2 = drawContentHeader();
             cy = startY2 + 4;
           } else {
-            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+            cy += prevRowH;
           }
           rowHeights = [0, 0];
         }
