@@ -1350,46 +1350,39 @@ async function gerarPDF(){
         return h;
       }
 
-      // ── Render cards: 2 colunas, 3 linhas por página (6 cards/pág) ──
-      let rowCount = 0;   // linhas desenhadas na página atual
+      // ── Render cards: 2 colunas, quebra dinâmica por altura ──
+      // Pré-calcular alturas de todos os cards
+      const allHeights = gprods.map(p => calcCardH(p, CW));
 
-      for (let gi2 = 0; gi2 < gprods.length; gi2++) {
+      // Agrupar em linhas de 2, verificar se cada linha cabe antes de desenhar
+      let gi2 = 0;
+      while (gi2 < gprods.length) {
         const p   = gprods[gi2];
         const col = gi2 % COLS;
 
-        // Início de nova linha
+        // Início de nova linha (col === 0): verificar se a linha cabe na página atual
         if (col === 0) {
-          if (rowCount === 3) {
-            // 3 linhas completas — quebrar ANTES de avançar cy
-            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+          // altura da linha = max dos dois cards (ou só o esquerdo se for o último)
+          const hLeft  = allHeights[gi2];
+          const hRight = gi2 + 1 < gprods.length ? allHeights[gi2 + 1] : 0;
+          const lineH  = Math.max(hLeft, hRight);
+
+          if (cy + lineH > PH - FOOTER_H) {
+            // Linha não cabe — quebrar página agora
             drawFooter();
             doc.addPage(); pgNum++;
             const sY = drawContentHeader();
             cy = sY + 4;
-            rowCount = 0;
-            rowHeights = [0, 0];
-          } else if (rowCount > 0) {
-            // Avançar para a próxima linha dentro da mesma página
-            cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
             rowHeights = [0, 0];
           }
-          rowCount++;
+          rowHeights = [0, 0];
         }
 
-        const ch    = calcCardH(p, CW);
+        const ch    = allHeights[gi2];
         rowHeights[col] = ch;
         const cx    = MG + col * (CW + HGAP);
         const cardY = cy;
         const hasImg = !!p.imagem;
-        // Extra safety: if this card bottom exceeds page, break now (col=1 case)
-        if (cardY + ch > PH - FOOTER_H) {
-          drawFooter();
-          doc.addPage(); pgNum++;
-          const sYX = drawContentHeader();
-          cy = sYX + 4;
-          rowCount = 1;
-          rowHeights = [0, 0];
-        }
 
         // ── Desenhar card ──
         // Sombra
@@ -1521,6 +1514,13 @@ async function gerarPDF(){
           doc.link(PAD, ay - 4.5, ficW, 7, { url: p.ficha });
         }
 
+        // Avançar cy ao completar uma linha (col=1) ou ao ser o último produto
+        if (col === COLS - 1 || gi2 === gprods.length - 1) {
+          cy += Math.max(rowHeights[0], rowHeights[1]) + GAP;
+          rowHeights = [0, 0];
+        }
+
+        gi2++;
       }
 
       // Rodapé da última página de categoria
