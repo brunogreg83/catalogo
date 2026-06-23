@@ -1207,11 +1207,11 @@ async function gerarPDF(){
 
     // Logo — centrada, grande
     const lw = 96, lh = lw * (1210 / 1648);
-    doc.addImage(logoData, "PNG", (PW - lw) / 2, 24, lw, lh);
+    doc.addImage(logoData, "PNG", (PW - lw) / 2, 36, lw, lh);
 
     // ── CAPA: layout centralizado ───────────────────────────
     const cats_u = [...new Set(prods.map(p => p.categoria))];
-    const logoBottom = 24 + lh;
+    const logoBottom = 36 + lh;
 
     // CATALOGO — logo abaixo da logo, espaço reduzido
     doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
@@ -1220,7 +1220,7 @@ async function gerarPDF(){
     const catBW2  = doc.getTextWidth(catTxt2);
     const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
     const availH3 = (PH - 20) - logoBottom;
-    const catY2   = logoBottom + (availH3 - 37) / 2 + 14;
+    const catY2   = logoBottom + (availH3 - 37) / 2 + 6;
     doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
 
     // 2026 — abaixo de CATÁLOGO, menor, mesma família visual
@@ -1313,7 +1313,7 @@ async function gerarPDF(){
       const COLS = 2;
       const CW = (PW - MG * 2 - HGAP) / COLS;
       const GAP = 3;
-      const FOOTER_H = 18;
+      const FOOTER_H = 22;
       const AH = 5.6;
       const IMG_W = 26, IMG_H = 20, IMG_PAD = 3;
       let prodIdx = 0;
@@ -1329,7 +1329,10 @@ async function gerarPDF(){
         // hdrH dinâmico (igual ao draw)
         const hasPr = !!mostrarPreco;
         doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-        const ppw = hasPr ? doc.getTextWidth((p.preco || 'Consultar')) + 12 : 0;
+        const pRaw2 = p.preco ? p.preco.trim() : "";
+        const pFmt2 = pRaw2 ? (pRaw2.startsWith("R$") ? pRaw2 : "R$ " + pRaw2) : "";
+        const pTxt2 = hasPr ? (pFmt2 || "Consultar") : "";
+        const ppw = pTxt2 ? doc.getTextWidth(pTxt2) + 8 : 0;
         doc.setFontSize(14);
         const nl = doc.splitTextToSize(p.nome, cw - ppw - 16);
         const hdrHC = 17 + (Math.min(nl.length, 2) > 1 ? 7 : 0);
@@ -1364,12 +1367,20 @@ async function gerarPDF(){
           pairH = Math.max(ch, calcCardH(gprods[gi2 + 1], CW));
         }
 
-        // Quebra de página (coluna esquerda)
+        // Quebra de página — verificar antes de desenhar qualquer coluna
         if (col === 0 && cy + pairH > PH - FOOTER_H) {
           drawFooter();
           doc.addPage(); pgNum++;
           const startY2 = drawContentHeader();
           cy = startY2 + 4;
+          rowHeights = [0, 0];
+        }
+        // Segurança extra: col=1 não pode ultrapassar a página
+        if (col === 1 && cy + ch > PH - FOOTER_H) {
+          drawFooter();
+          doc.addPage(); pgNum++;
+          const startY3 = drawContentHeader();
+          cy = startY3 + 4;
           rowHeights = [0, 0];
         }
 
@@ -1386,7 +1397,11 @@ async function gerarPDF(){
         doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
 
         // ── Header: gradiente azul escuro → azul, nome + pill de preço ──
-        const precoTxt = mostrarPreco ? (p.preco || "Consultar") : "";
+        const precoRaw = p.preco ? p.preco.trim() : "";
+        const precoFmt = precoRaw
+          ? (precoRaw.startsWith("R$") ? precoRaw : "R$ " + precoRaw)
+          : "";
+        const precoTxt = mostrarPreco ? (precoFmt || "Consultar") : "";
 
         // Medir pill de preço
         doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
