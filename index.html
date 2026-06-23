@@ -1369,7 +1369,7 @@ async function gerarPDF(){
       const MG = 11, HGAP = 4;
       const COLS = 2;
       const CW = (PW - MG * 2 - HGAP) / COLS;
-      const CARD_H = 38;
+      const CARD_H = 44;
       const GAP = 3;
       const FOOTER_H = 18; // espaço reservado para rodapé
       let prodIdx = 0;
@@ -1391,7 +1391,7 @@ async function gerarPDF(){
         const cx = MG + col * (CW + HGAP);
         const cardY = cy;
 
-        const AH = 5.2;
+        const AH = 5.6;
         const IMG_W = 26, IMG_H = 20, IMG_PAD = 3;
         const hasImg = !!p.imagem;
         const NAMEPAD = cx + 6;
@@ -1404,23 +1404,25 @@ async function gerarPDF(){
         doc.roundedRect(cx, cardY, CW, CARD_H, 5, 5, "FD");
         F(C.sky); doc.roundedRect(cx, cardY + 3, 2, CARD_H - 6, 1, 1, "F");
 
-        // Nome
+        // Nome — até 2 linhas
         doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.text);
         const nomeLines = doc.splitTextToSize(p.nome, maxNomeW);
-        doc.text(nomeLines[0], NAMEPAD, cardY + 7);
+        const nomeH = Math.min(nomeLines.length, 2);
+        nomeLines.slice(0, 2).forEach((ln, i) => doc.text(ln, NAMEPAD, cardY + 7 + i * 4.5));
+        const nomeOffset = nomeH > 1 ? 4.5 : 0;
 
         // Preço
         if (mostrarPreco && p.preco) {
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
           doc.setTextColor(26, 130, 60);
           const precoX = hasImg ? cx + CW - IMG_W - IMG_PAD - 4 : cx + CW - 5;
-          doc.text(p.preco, precoX, cardY + 7, { align: "right" });
+          doc.text(p.preco, precoX, cardY + 7 + nomeOffset, { align: "right" });
         }
 
         // Linha sob nome
         D(C.sky); doc.setLineWidth(0.2);
         const lineEndX = hasImg ? cx + CW - IMG_W - IMG_PAD - 3 : cx + CW - 5;
-        doc.line(NAMEPAD, cardY + 9, lineEndX, cardY + 9);
+        doc.line(NAMEPAD, cardY + 9 + nomeOffset, lineEndX, cardY + 9 + nomeOffset);
 
         // Imagem
         if (hasImg) {
@@ -1447,7 +1449,7 @@ async function gerarPDF(){
 
         // Atributos
         const textAreaW = hasImg ? CW - IMG_W - IMG_PAD - 10 : CW - 12;
-        let ay = cardY + 14;
+        let ay = cardY + 14 + nomeOffset;
         (p.attrs || []).forEach(({ l: label, v: value }) => {
           doc.setFont("helvetica", "bold"); doc.setFontSize(6);
           T(C.blue);
@@ -1456,8 +1458,9 @@ async function gerarPDF(){
           T(C.text);
           const labelW = 28;
           const lines = doc.splitTextToSize(value, textAreaW - labelW);
-          doc.text(lines[0], NAMEPAD + labelW, ay);
-          ay += AH;
+          const visLines = lines.slice(0, 2);
+          visLines.forEach((ln, i) => doc.text(ln, NAMEPAD + labelW, ay + i * 4.5));
+          ay += AH * visLines.length;
         });
 
         // Ficha técnica
