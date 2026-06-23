@@ -1381,6 +1381,15 @@ async function gerarPDF(){
         const cx    = MG + col * (CW + HGAP);
         const cardY = cy;
         const hasImg = !!p.imagem;
+        // Extra safety: if this card bottom exceeds page, break now (col=1 case)
+        if (cardY + ch > PH - FOOTER_H) {
+          drawFooter();
+          doc.addPage(); pgNum++;
+          const sYX = drawContentHeader();
+          cy = sYX + 4;
+          rowCount = 1;
+          rowHeights = [0, 0];
+        }
 
         // ── Desenhar card ──
         // Sombra
