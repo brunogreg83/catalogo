@@ -1208,95 +1208,43 @@ async function gerarPDF(){
     const lw = 96, lh = lw * (1210 / 1648);
     doc.addImage(logoData, "PNG", (PW - lw) / 2, 24, lw, lh);
 
-    // Linha divisória sky
-    const divY = 24 + lh + 10;
-    D(C.sky); doc.setLineWidth(0.4);
-    doc.line(PW / 2 - 28, divY, PW / 2 + 28, divY);
-
-    // Título principal
-    const titleY = divY + 14;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(36);
-    T(C.text);
-    doc.text("Linha Profissional de", PW / 2, titleY, { align: "center" });
-    T(C.blue);
-    doc.text("Limpeza e Higienização", PW / 2, titleY + 16, { align: "center" });
-
-    // "CATÁLOGO" em grande destaque — texto enorme, sem pill
-    const catY = titleY + 40;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(46);
-    T(C.blueDk);
-    // charSpace não é considerado por align:center — desenhar manualmente centralizado
-    const catTxt = "CATÁLOGO";
-    const catCS = 6;
-    const catBaseW = doc.getTextWidth(catTxt);
-    const catTotalW = catBaseW + catCS * (catTxt.length - 1);
-    doc.text(catTxt, (PW - catTotalW) / 2, catY, { charSpace: catCS });
-    // linha decorativa sky abaixo
-    D(C.sky); doc.setLineWidth(1.2);
-    doc.line(PW / 2 - 32, catY + 9, PW / 2 + 32, catY + 9);
-    const btnY = catY + 9; // referência para próximos elementos
-
-    // Stats
+    // ── CAPA: layout harmonioso ──────────────────────────────
     const mostrarPreco = document.getElementById("chkPreco").checked;
     const cats_u = [...new Set(prods.map(p => p.categoria))];
-    const stats = [
-      { v: String(prods.length), l: "produtos" },
-      { v: String(cats_u.length), l: cats_u.length === 1 ? "categoria" : "categorias" },
-    ];
-    const stY = btnY + 18;
-    stats.forEach((s, i, a) => {
-      const cx = PW / 2 + (i - (a.length - 1) / 2) * 60;
-      doc.setFillColor(215, 226, 242);
-      doc.roundedRect(cx - 25, stY + 1.5, 50, 22, 6, 6, "F");
-      F(C.offWhite); D(C.gray); doc.setLineWidth(0.3);
-      doc.roundedRect(cx - 25, stY, 50, 22, 6, 6, "FD");
-      doc.setFont("helvetica", "bold"); doc.setFontSize(20); T(C.blue);
-      doc.text(s.v, cx, stY + 12, { align: "center" });
-      doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); T(C.muted);
-      doc.text(s.l, cx, stY + 18.5, { align: "center" });
-    });
 
-    // Categorias — badges maiores e mais visíveis
-    const catBadgeY = stY + 32;
-    doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); T(C.muted);
-    doc.text("CATEGORIAS", PW / 2, catBadgeY, { align: "center" });
+    // Posicionamento centrado verticalmente na área abaixo da logo
+    const logoBottom = 24 + lh;
+    const footerTop  = PH - 20;
+    const contentH   = footerTop - logoBottom;
+    const midY       = logoBottom + contentH * 0.5;
 
-    // Badges com quebra automática em múltiplas linhas (respeita margens)
-    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-    const catItems = cats_u;
-    const catPadW = 10, catH = 9, catGap = 5, lineGap = 4;
-    const maxRowW = PW - 24; // margem de 12mm de cada lado
+    // ── Linha divisória sky (abaixo da logo) ──
+    const divY = logoBottom + 10;
+    D(C.sky); doc.setLineWidth(0.5);
+    doc.line(PW/2 - 25, divY, PW/2 + 25, divY);
 
-    // 1. calcular largura de cada badge e organizar em linhas
-    const rows = [];
-    let currentRow = [];
-    let currentRowW = 0;
-    catItems.forEach(cat => {
-      const cw = doc.getTextWidth(cat) + catPadW * 2;
-      const addedW = currentRow.length ? cw + catGap : cw;
-      if (currentRowW + addedW > maxRowW && currentRow.length) {
-        rows.push({ items: currentRow, width: currentRowW });
-        currentRow = [];
-        currentRowW = 0;
-      }
-      currentRow.push({ cat, cw });
-      currentRowW += currentRow.length > 1 ? cw + catGap : cw;
-    });
-    if (currentRow.length) rows.push({ items: currentRow, width: currentRowW });
+    // ── Subtítulo pequeno ──
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10); T(C.muted);
+    doc.text("Linha Profissional de Limpeza e Higienização", PW/2, divY + 12, { align: "center" });
 
-    // 2. desenhar cada linha centralizada
-    rows.forEach((row, rowIdx) => {
-      let catX = (PW - row.width) / 2;
-      const rowY = catBadgeY + 4 + rowIdx * (catH + lineGap);
-      row.items.forEach(({ cat, cw }) => {
-        doc.setFillColor(200, 218, 240);
-        doc.roundedRect(catX + 0.8, rowY + 0.8, cw, catH, 3, 3, "F");
-        F(C.blue); doc.roundedRect(catX, rowY, cw, catH, 3, 3, "F");
-        T(C.white);
-        doc.text(cat, catX + cw / 2, rowY + catH/2 + 1.3, { align: "center" });
-        catX += cw + catGap;
-      });
-    });
+    // ── CATÁLOGO — enorme, centralizado ──
+    doc.setFont("helvetica", "bold"); doc.setFontSize(52); T(C.blueDk);
+    const catTxt2 = "CATÁLOGO";
+    const catCS2  = 7;
+    const catBW2  = doc.getTextWidth(catTxt2);
+    const catTW2  = catBW2 + catCS2 * (catTxt2.length - 1);
+    const catY2   = divY + 38;
+    doc.text(catTxt2, (PW - catTW2) / 2, catY2, { charSpace: catCS2 });
+
+    // Linha decorativa dupla abaixo de CATÁLOGO
+    D(C.sky); doc.setLineWidth(1.5);
+    doc.line(PW/2 - 35, catY2 + 8, PW/2 + 35, catY2 + 8);
+    D([200, 225, 255]); doc.setLineWidth(0.5);
+    doc.line(PW/2 - 25, catY2 + 11, PW/2 + 25, catY2 + 11);
+
+    // ── AB Chemicals tagline ──
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); T(C.blue);
+    doc.text("AB CHEMICALS  ·  Soluções em Limpeza Profissional", PW/2, catY2 + 22, { align: "center" });
 
     // Rodapé da capa
     F(C.text); doc.rect(0, PH - 20, PW, 20, "F");
@@ -1390,10 +1338,10 @@ async function gerarPDF(){
       function calcCardH(p, cw) {
         const textAreaW = cw - 10;
         // hdrH dinâmico (igual ao draw)
-        const hasPr = !!(mostrarPreco && p.preco);
+        const hasPr = !!mostrarPreco;
         doc.setFont("helvetica", "bold"); doc.setFontSize(9);
         const ppw = hasPr ? doc.getTextWidth(p.preco) + 12 : 0;
-        doc.setFontSize(11);
+        doc.setFontSize(14);
         const nl = doc.splitTextToSize(p.nome, cw - ppw - 16);
         const hdrHC = 15 + (Math.min(nl.length, 2) > 1 ? 5.5 : 0);
         let h = hdrHC + 1.5; // +faixa sky
@@ -1449,19 +1397,19 @@ async function gerarPDF(){
         doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
 
         // ── Header: gradiente azul escuro → azul, nome + pill de preço ──
-        const precoTxt = (mostrarPreco && p.preco) ? p.preco : "";
+        const precoTxt = mostrarPreco ? (p.preco || "Consultar") : "";
 
         // Medir pill de preço
         doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-        const precoPillW = precoTxt ? doc.getTextWidth("R$ " + precoTxt) + 8 : 0;
+        const precoPillW = precoTxt ? doc.getTextWidth(precoTxt) + 8 : 0;
         const precoPillH = 8;
 
         // Nome — fonte maior para mais destaque
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(14);
         const nomeMaxW = CW - precoPillW - 14;
         const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
         const nomeRows  = Math.min(nomeLines.length, 2);
-        const hdrH = 15 + (nomeRows > 1 ? 5.5 : 0);
+        const hdrH = 17 + (nomeRows > 1 ? 7 : 0);
 
         // Gradiente azul escuro → azul médio (da esquerda p/ direita)
         for (let gi = 0; gi < 24; gi++) {
@@ -1474,28 +1422,33 @@ async function gerarPDF(){
         }
 
         // Nome em branco, bold, 11pt
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11); T(C.white);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(14); T(C.white);
         nomeLines.slice(0, 2).forEach((ln, i) =>
-          doc.text(ln, cx + 6, cardY + 10.5 + i * 5.5));
+          doc.text(ln, cx + 6, cardY + 11.5 + i * 6.5));
 
         // Pill de preço — verde claro com cifrão + valor (igual badge da interface)
         if (precoTxt) {
           const pillH2 = 8;
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          const pillTxt = "R$ " + precoTxt;
+          const pillTxt = precoTxt;
           const pillTW = doc.getTextWidth(pillTxt);
           const pillW2 = pillTW + 8;
           const pillX = cx + CW - pillW2 - 5;
           const pillY = cardY + (hdrH - pillH2) / 2;
-          // fundo verde exato do modelo
-          doc.setFillColor(232, 245, 238);
-          doc.setDrawColor(172, 224, 195);
+          // cor do pill: verde se tem preço, azul claro se "Consultar"
+          const isConsultar = pillTxt === "Consultar";
+          if (isConsultar) {
+            doc.setFillColor(238, 244, 255);
+            doc.setDrawColor(180, 210, 245);
+          } else {
+            doc.setFillColor(232, 245, 238);
+            doc.setDrawColor(172, 224, 195);
+          }
           doc.setLineWidth(0.4);
           doc.roundedRect(pillX, pillY, pillW2, pillH2, 4, 4, "FD");
-          // texto verde escuro
           doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          doc.setTextColor(26, 122, 60);
+          doc.setTextColor(...(isConsultar ? C.blue : [26, 122, 60]));
           doc.text(pillTxt, pillX + pillW2/2, pillY + pillH2/2 + 1.4, { align: "center" });
         }
 
@@ -1560,7 +1513,7 @@ async function gerarPDF(){
           ay += 1;
           // pill fundo
           doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-          const ficLabel = "↓  Ficha Técnica";
+          const ficLabel = ">> Ficha Tecnica";
           const ficW = doc.getTextWidth(ficLabel) + 12;
           doc.setFillColor(238, 244, 255);
           doc.setDrawColor(...C.blue); doc.setLineWidth(0.35);
