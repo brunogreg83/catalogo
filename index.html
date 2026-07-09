@@ -1316,8 +1316,8 @@ async function gerarPDF(){
       return topY + 6; // Y inicial dos cards
     }
 
-    // Ordem fixa — Institucional sempre por último
-    const CAT_ORDER = ["Cozinha", "Lavanderia", "Piso", "Lava Car", "Descartáveis", "Institucional"];
+    // Ordem fixa — Institucional sempre por primeiro
+    const CAT_ORDER = ["Institucional", "Cozinha", "Lavanderia", "Piso", "Lava Car", "Descartáveis"];
     const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
       const ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
       if (ia === -1 && ib === -1) return a.localeCompare(b);
