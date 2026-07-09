@@ -1331,6 +1331,7 @@ async function gerarPDF(){
       doc.text(cntTxt, PW - 12 - cntW / 2, startY + SH / 2 + 1.5, { align: "center" });
 
       let cy = startY + SH + 7;
+      let pageHasCards = false; // nunca deixamos uma página sem nenhum card
       const MG = 11, HGAP = 4;
       const COLS = 2;
       const CW = (PW - MG * 2 - HGAP) / COLS;
@@ -1387,19 +1388,31 @@ async function gerarPDF(){
           : 0;
         const groupHmin = hLine0min + (hLine1min > 0 ? GAP + hLine1min : 0);
 
-        // Se o grupo não cabe na página atual, quebrar
-        if (cy + groupHmin > PH - FOOTER_H) {
+        // Se o grupo não cabe na página atual, quebrar —
+        // mas NUNCA deixar uma página sem nenhum card (evita página "em branco"
+        // quando o primeiro produto de uma categoria tem descrição muito longa)
+        if (cy + groupHmin > PH - FOOTER_H && pageHasCards) {
           drawFooter();
           doc.addPage(); pgNum++;
           const sY = drawContentHeader();
           cy = sY + 4;
+          pageHasCards = false;
         }
+        pageHasCards = true;
 
         // Espaço total disponível nesta página para os cards
         const pageAvail = PH - FOOTER_H - cy;
+        // Se mesmo assim o conteúdo não coube (ex.: descrição muito longa no
+        // primeiro produto da categoria), não tentamos "esticar" os cards —
+        // apenas usamos a altura mínima natural de cada um, mesmo que a
+        // última linha invada um pouco o rodapé (melhor que ficar em branco).
+        const overflowForcado = pageAvail < groupHmin;
 
         let hLine0, hLine1;
-        if (idxC >= 0) {
+        if (overflowForcado) {
+          hLine0 = hLine0min;
+          hLine1 = hLine1min;
+        } else if (idxC >= 0) {
           // Há 2 linhas: distribuir o espaço total proporcionalmente
           const totalMin = hLine0min + GAP + hLine1min;
           const extra    = Math.max(0, pageAvail - totalMin);
