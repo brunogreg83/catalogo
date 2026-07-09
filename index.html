@@ -1296,7 +1296,7 @@ async function gerarPDF(){
     }
 
     // Ordem fixa — Institucional sempre por último
-    const CAT_ORDER = ["Institucional", "Cozinha", "Lavanderia", "Piso", "Lava Car", "Descartáveis"];
+    const CAT_ORDER = ["Cozinha", "Lavanderia", "Piso", "Lava Car", "Descartáveis", "Institucional"];
     const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
       const ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
       if (ia === -1 && ib === -1) return a.localeCompare(b);
@@ -1348,26 +1348,21 @@ async function gerarPDF(){
       // ── Calcula altura necessária para um card (espelha hdrH do draw) ──
       function calcCardH(p, cw) {
         const textAreaW = cw - 10;
-        // hdrH dinâmico (igual ao draw)
         const hasPr = !!mostrarPreco;
-        doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-        const pRaw2 = p.preco ? p.preco.trim() : "";
-        const pFmt2 = pRaw2 ? (pRaw2.startsWith("R$") ? pRaw2 : "R$ " + pRaw2) : "";
-        const pTxt2 = hasPr ? (pFmt2 || "Consultar") : "";
-        const ppw = pTxt2 ? doc.getTextWidth(pTxt2) + 8 : 0;
+        // hdrH dinâmico (igual ao draw) — nome agora usa a largura toda, sem descontar preço
         doc.setFontSize(14);
-        const nl = doc.splitTextToSize(p.nome, cw - ppw - 16);
+        const nl = doc.splitTextToSize(p.nome, Math.max(cw - 14, 20));
         const hdrHC = 17 + (Math.min(nl.length, 2) > 1 ? 7 : 0);
         let h = hdrHC + 1.5; // +faixa sky
         if (!!p.imagem) h += IMG_AREA + 2;
         h += 7; // padding após foto (igual ao draw)
         (p.attrs || []).forEach(({ l, v }) => {
           doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-          const vLines = doc.splitTextToSize(v, textAreaW - 28).length;
           const vLines2 = doc.splitTextToSize(v, textAreaW - 22).length;
           h += 4.2 * Math.min(vLines2, 3) + 1.5;
         });
         if (p.ficha) h += AH + 8;
+        if (hasPr) h += 13; // espaço reservado para o preço no rodapé do card
         h += 1; // padding inferior
         return h;
       }
@@ -1428,21 +1423,16 @@ async function gerarPDF(){
         F(C.white); D(C.gray); doc.setLineWidth(0.3);
         doc.roundedRect(cx, cardY, CW, ch, 5, 5, "FD");
 
-        // ── Header: gradiente azul escuro → azul, nome + pill de preço ──
+        // ── Header: gradiente azul escuro → azul, nome em destaque ──
         const precoRaw = p.preco ? p.preco.trim() : "";
         const precoFmt = precoRaw
           ? (precoRaw.startsWith("R$") ? precoRaw : "R$ " + precoRaw)
           : "";
         const precoTxt = mostrarPreco ? (precoFmt || "Consultar") : "";
 
-        // Medir pill de preço
-        doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-        const precoPillW = precoTxt ? doc.getTextWidth(precoTxt) + 8 : 0;
-        const precoPillH = 8;
-
-        // Nome — fonte maior para mais destaque
+        // Nome — fonte maior para mais destaque, usa a largura toda do card
         doc.setFont("helvetica", "bold"); doc.setFontSize(14);
-        const nomeMaxW = CW - precoPillW - 14;
+        const nomeMaxW = Math.max(CW - 14, 20);
         const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
         const nomeRows  = Math.min(nomeLines.length, 2);
         const hdrH = 17 + (nomeRows > 1 ? 7 : 0);
@@ -1461,32 +1451,6 @@ async function gerarPDF(){
         doc.setFont("helvetica", "bold"); doc.setFontSize(14); T(C.white);
         nomeLines.slice(0, 2).forEach((ln, i) =>
           doc.text(ln, cx + 6, cardY + 11.5 + i * 6.5));
-
-        // Pill de preço — verde claro com cifrão + valor (igual badge da interface)
-        if (precoTxt) {
-          const pillH2 = 8;
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          const pillTxt = precoTxt;
-          const pillTW = doc.getTextWidth(pillTxt);
-          const pillW2 = pillTW + 8;
-          const pillX = cx + CW - pillW2 - 5;
-          const pillY = cardY + (hdrH - pillH2) / 2;
-          // cor do pill: verde se tem preço, azul claro se "Consultar"
-          const isConsultar = pillTxt === "Consultar";
-          if (isConsultar) {
-            doc.setFillColor(238, 244, 255);
-            doc.setDrawColor(180, 210, 245);
-          } else {
-            doc.setFillColor(232, 245, 238);
-            doc.setDrawColor(172, 224, 195);
-          }
-          doc.setLineWidth(0.4);
-          doc.roundedRect(pillX, pillY, pillW2, pillH2, 4, 4, "FD");
-          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-          doc.setTextColor(...(isConsultar ? C.blue : [26, 122, 60]));
-          doc.text(pillTxt, pillX + pillW2/2, pillY + pillH2/2 + 1.4, { align: "center" });
-        }
 
         // Faixa sky na base do header
         F(C.sky); doc.rect(cx, cardY + hdrH - 1.5, CW, 1.5, "F");
@@ -1548,6 +1512,30 @@ async function gerarPDF(){
           T(C.blue);
           doc.text(ficLabel, PAD + 6, ay);
           doc.link(PAD, ay - 4.5, ficW, 7, { url: p.ficha });
+        }
+
+        // ── Preço — rodapé do card, ancorado na base (última linha) ──
+        if (precoTxt) {
+          const pillH2 = 8;
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+          const pillTW = doc.getTextWidth(precoTxt);
+          const pillW2 = pillTW + 8;
+          const pillX = cx + CW - pillW2 - 5;
+          const pillY = cardY + ch - pillH2 - 4;
+          // cor do pill: verde se tem preço, azul claro se "Consultar"
+          const isConsultar = precoTxt === "Consultar";
+          if (isConsultar) {
+            doc.setFillColor(238, 244, 255);
+            doc.setDrawColor(180, 210, 245);
+          } else {
+            doc.setFillColor(232, 245, 238);
+            doc.setDrawColor(172, 224, 195);
+          }
+          doc.setLineWidth(0.4);
+          doc.roundedRect(pillX, pillY, pillW2, pillH2, 4, 4, "FD");
+          doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+          doc.setTextColor(...(isConsultar ? C.blue : [26, 122, 60]));
+          doc.text(precoTxt, pillX + pillW2/2, pillY + pillH2/2 + 1.4, { align: "center" });
         }
 
         } // fecha drawCard
