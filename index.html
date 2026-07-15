@@ -192,8 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* LAYOUT */
   .main{max-width:1100px;margin:0 auto;padding:34px 40px 60px;
-    display:grid;grid-template-columns:1fr 360px;gap:30px;align-items:start}
-  @media(max-width:860px){.main{grid-template-columns:1fr;padding:22px 18px 40px}}
+    display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:30px;align-items:start}
+  @media(max-width:860px){.main{grid-template-columns:minmax(0,1fr);padding:22px 18px 40px}}
 
   /* LABELS */
   .section-label{display:flex;align-items:center;gap:8px;margin-bottom:5px;
@@ -278,7 +278,8 @@ document.addEventListener("DOMContentLoaded", () => {
   .btn-add:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
   /* PRODUCT LIST */
-  .product-list{display:flex;flex-direction:column;gap:10px}
+  .product-list{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .product-list>div{min-width:0}
   .empty-state{text-align:center;padding:38px 20px;background:var(--off-white);
     border-radius:16px;border:2px dashed var(--gray)}
   .empty-icon{font-size:2.2rem;opacity:.4}
@@ -287,12 +288,12 @@ document.addEventListener("DOMContentLoaded", () => {
   /* PRODUCT CARD */
   .product-card{background:#fff;border-radius:14px;overflow:hidden;
     border:1.5px solid rgba(26,79,160,.1);box-shadow:0 3px 14px rgba(26,79,160,.06);
-    transition:transform .2s,box-shadow .2s,border-color .2s}
+    transition:transform .2s,box-shadow .2s,border-color .2s;min-width:0}
   .product-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,79,160,.13);border-color:var(--blue-light)}
 
   /* Header: faixa azul com nome + ações */
   .product-card-header{background:linear-gradient(135deg,var(--blue),var(--sky));
-    padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
   .product-card-header-name{font-family:"Montserrat",sans-serif;font-size:.85rem;
     font-weight:800;color:#fff;flex:1;min-width:0;overflow:hidden;
     white-space:nowrap;text-overflow:ellipsis}
@@ -429,7 +430,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .section-title{font-size:1.1rem}
 
     /* product card */
-    .product-attrs{grid-template-columns:1fr;gap:1px 0}
+    .product-attrs{grid-template-columns:minmax(0,1fr);gap:1px 0}
     .attr-label{white-space:normal}
     .product-card-body{padding:10px 12px 12px}
     .product-card-name{font-size:.88rem}
