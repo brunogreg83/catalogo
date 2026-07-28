@@ -1399,8 +1399,11 @@ async function gerarPDF(){
 
     // Ordem fixa
     const CAT_ORDER = ["Detergentes", "Desengordurantes", "Desinfetantes", "Limpeza Geral", "Tratamento de Piso", "Lavanderia", "Lava Car", "Descartáveis"];
+    // Aceita nomes antigos (singular) salvos em produtos cadastrados antes da renomeação
+    const CAT_ALIASES = { "Detergente": "Detergentes", "Desengordurante": "Desengordurantes", "Desinfetante": "Desinfetantes" };
     const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
-      const ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
+      const na = CAT_ALIASES[a] || a, nb = CAT_ALIASES[b] || b;
+      const ia = CAT_ORDER.indexOf(na), ib = CAT_ORDER.indexOf(nb);
       if (ia === -1 && ib === -1) return a.localeCompare(b);
       if (ia === -1) return 1;
       if (ib === -1) return -1;
