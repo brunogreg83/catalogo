@@ -1433,11 +1433,19 @@ async function gerarPDF(){
       const precoTxt = mostrarPreco ? (precoFmt || "Consultar") : "";
 
       // ── Header: nome do produto, usa a largura toda do card ──
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+      // Fonte diminui automaticamente até o nome inteiro caber (sem cortar texto).
       const nomeMaxW = Math.max(cw - 14, 20);
-      const nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
-      const nomeRows = Math.min(nomeLines.length, 2);
-      const hdrH = 17 + (nomeRows > 1 ? 7 : 0);
+      let nomeFontSize = 14;
+      doc.setFont("helvetica", "bold"); doc.setFontSize(nomeFontSize);
+      let nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
+      while (nomeLines.length > 2 && nomeFontSize > 8) {
+        nomeFontSize -= 0.5;
+        doc.setFontSize(nomeFontSize);
+        nomeLines = doc.splitTextToSize(p.nome, nomeMaxW);
+      }
+      const nomeRows = nomeLines.length;
+      const nomeLineH = 6.5 * (nomeFontSize / 14);
+      const hdrH = 10 + nomeLineH * nomeRows;
 
       for (let gi = 0; gi < 24; gi++) {
         const t = gi / 24;
@@ -1447,9 +1455,10 @@ async function gerarPDF(){
           Math.round(C.blueDk[2] + (C.blue[2]-C.blueDk[2])*t));
         doc.rect(cx + gi*(cw/24), cardY, cw/24+0.5, hdrH, "F");
       }
-      doc.setFont("helvetica", "bold"); doc.setFontSize(14); T(C.white);
-      nomeLines.slice(0, 2).forEach((ln, i) =>
-        doc.text(ln, cx + 6, cardY + 11.5 + i * 6.5));
+      doc.setFont("helvetica", "bold"); doc.setFontSize(nomeFontSize); T(C.white);
+      const nomeFirstY = cardY + 4.5 + nomeLineH * 0.78;
+      nomeLines.forEach((ln, i) =>
+        doc.text(ln, cx + 6, nomeFirstY + i * nomeLineH));
       F(C.sky); doc.rect(cx, cardY + hdrH - 1.5, cw, 1.5, "F");
 
       let bodyY = cardY + hdrH;
@@ -1491,38 +1500,49 @@ async function gerarPDF(){
       }
       const maxAttrsY = bottomCursor; // atributos não podem passar daqui
 
-      // ── Atributos — desenha só o que couber; trunca o resto ──
+      // ── Atributos — a fonte diminui automaticamente até tudo caber,
+      // o texto nunca é cortado. ──
       const PAD = cx + 5;
       const VALX = cx + 24;
       const VALAW = cw - 29;
-      const LINE_H = 4.2;
-      let ay = bodyY;
-      let truncated = false;
       const attrsList = p.attrs || [];
+
+      // Mede a altura total necessária num dado tamanho de fonte.
+      function medirAlturaAttrs(valFontSize, lineH, spacing) {
+        doc.setFont("helvetica", "normal"); doc.setFontSize(valFontSize);
+        let h = 0;
+        attrsList.forEach(a => {
+          const lines = doc.splitTextToSize(a.v, VALAW - 2);
+          h += lineH * Math.max(lines.length, 1) + spacing;
+        });
+        return h;
+      }
+
+      const availAttrsH = Math.max(maxAttrsY - bodyY, 0);
+      let valFont = 9.5, labFont = 7, lineH = 4.2, spacing = 1.5;
+      if (attrsList.length > 0) {
+        let altura = medirAlturaAttrs(valFont, lineH, spacing);
+        // Reduz a fonte (e o espaçamento) em pequenos passos até caber
+        // ou até atingir o tamanho mínimo legível.
+        while (altura > availAttrsH && valFont > 6) {
+          valFont -= 0.4; labFont -= 0.25; lineH -= 0.18; spacing -= 0.05;
+          altura = medirAlturaAttrs(valFont, lineH, spacing);
+        }
+        valFont = Math.max(valFont, 6);
+        labFont = Math.max(labFont, 5.2);
+        lineH = Math.max(lineH, 3.2);
+        spacing = Math.max(spacing, 0.6);
+      }
+
+      let ay = bodyY;
       for (let ai = 0; ai < attrsList.length; ai++) {
         const { l: label, v: value } = attrsList[ai];
-        doc.setFont("helvetica", "normal"); doc.setFontSize(9.5);
-        const rawLines = doc.splitTextToSize(value, VALAW - 2);
-        const maxLinesFit = Math.max(0, Math.floor((maxAttrsY - ay) / LINE_H));
-        if (maxLinesFit <= 0) { truncated = true; break; }
-        const visLines = rawLines.slice(0, Math.min(3, maxLinesFit));
-        if (visLines.length < rawLines.length && visLines.length > 0) {
-          let last = visLines[visLines.length - 1];
-          while (doc.getTextWidth(last + "...") > VALAW - 2 && last.length > 3) {
-            last = last.slice(0, -1);
-          }
-          visLines[visLines.length - 1] = last + "...";
-          truncated = true;
-        }
-        if (visLines.length === 0) { truncated = true; break; }
-
-        doc.setFont("helvetica", "bold"); doc.setFontSize(7); T(C.blue);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(labFont); T(C.blue);
         doc.text(label.toUpperCase(), PAD, ay);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); T(C.text);
-        visLines.forEach((ln, i) => doc.text(ln, VALX, ay + i * LINE_H));
-        ay += LINE_H * visLines.length + 1.5;
-
-        if (ai < attrsList.length - 1 && ay > maxAttrsY) { truncated = true; break; }
+        doc.setFont("helvetica", "normal"); doc.setFontSize(valFont); T(C.text);
+        const lines = doc.splitTextToSize(value, VALAW - 2);
+        lines.forEach((ln, i) => doc.text(ln, VALX, ay + i * lineH));
+        ay += lineH * lines.length + spacing;
       }
 
       // ── Ficha Técnica — posição fixa perto da base ──
