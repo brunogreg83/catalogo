@@ -550,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="form-row full">
         <div class="form-group">
-          <label>Descrição (opcional)</label>
+          <label>Modo de uso (opcional)</label>
           <textarea id="fDescricao" placeholder="Benefícios, modo de uso…"></textarea>
         </div>
       </div>
@@ -863,7 +863,7 @@ async function salvarProduto(){
 
   const attrs=[];
   const preco = document.getElementById("fPreco").value.trim();
-  const mp={"fEmbalagem":"Embalagem","fDiluicao":"Diluição","fAplicacao":"Aplicação","fDescricao":"Descrição"};
+  const mp={"fEmbalagem":"Embalagem","fDiluicao":"Diluição","fAplicacao":"Aplicação","fDescricao":"Modo de uso"};
   Object.entries(mp).forEach(([fid,label])=>{
     const v=document.getElementById(fid).value.trim();
     if(v) attrs.push({l:label,v});
@@ -950,7 +950,7 @@ function editarProduto(id){
   camposExtra=[];
   resetImagemForm();
 
-  const mp={"Embalagem":"fEmbalagem","Diluição":"fDiluicao","Aplicação":"fAplicacao","Descrição":"fDescricao"};
+  const mp={"Embalagem":"fEmbalagem","Diluição":"fDiluicao","Aplicação":"fAplicacao","Modo de uso":"fDescricao","Descrição":"fDescricao"};
   const known=Object.keys(mp);
   (p.attrs||[]).forEach(({l,v})=>{
     if(known.includes(l)){ document.getElementById(mp[l]).value=v; }
